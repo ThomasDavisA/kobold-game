@@ -1,0 +1,669 @@
+:root {
+    --border-color: black;
+    --coin-wood-color: #544008;
+    --coin-copper-color: #b87333;
+    --coin-brass-color: #b5a642;
+    --coin-bronze-color: #cd7f32;
+    --coin-iron-color: #828383;
+    --coin-steel-color: #43464B;
+    --coin-silver-color: #c0c0c0;
+    --coin-electrum-color: #e6c799;
+    --coin-gold-color: #ffd700;
+    --coin-platinum-color: #e5e4e2;
+
+
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+body {
+    font-family: sans-serif;
+    box-sizing: border-box;
+    width: 100vw;
+    height: 100vh;
+} 
+
+
+.area-block {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    border: solid 2px var(--border-color);
+    height: 100%;
+    width: 100%;
+    padding: 2px;
+}
+
+.coin-wood {
+    color: var(--coin-wood-color);
+    height: 50%;
+    width: 100%;
+    font-size: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;    
+}
+
+.end-box {
+    position: fixed;
+    margin: auto;
+    left: 50%;
+    top: -50%;
+    background-color: lightgrey;
+    border: 1px solid black;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 30%;
+    height: 50vh;
+    margin-top: -25vh;
+    margin-left: -15%;
+    transition: top ease-out 0.5s;
+}
+
+#kobold-cook-food-count {
+    float: right;
+    color: green;
+}
+
+#restart {
+    height: 30%;
+    width: 100%;
+    font-size: 2rem;
+}
+
+#end-text {
+    width: 100%;
+    padding: 10%;
+    margin-bottom: 5px;
+    text-align: center;
+    font-size: 2rem;
+    line-height: 2.2rem;
+}
+
+.equipment-piece {
+    background-color: black;
+    width: 32px;
+    height: 32px;
+    margin: 1px;
+    border-radius: 3px;
+    border: 1px black solid;
+}
+
+#how-to {
+    position: fixed;
+    background-color: lightgrey;
+    width: 30%;
+    height: 70%;
+    left: 100%;
+    top: 100px;
+    z-index: -1;
+    padding: 40px 20px 20px 20px;
+    overflow-y: scroll;
+    transition: ease-out .3s;
+}
+
+
+#how-to-button:hover #how-to,
+#how-to:hover {
+    left: 70%;
+}
+
+#background-help {
+    background-color: white;
+    padding: 20px;
+    margin: 5px;
+    border-radius: 5px;
+}
+
+.game-help-text {
+    padding: 10px;
+    
+}
+
+#game-help-list {
+    padding-left: 40px;
+}
+
+#game-help-list p {
+    padding-left: 10px;
+}
+
+.title-block {
+    display: inline-block;
+    font-size: 1.2rem;
+    line-height: 1.5rem;
+    border: 1px solid black;
+}
+
+.title-block i {
+    font-size: 1rem;
+}
+
+.top-bar {
+    position: fixed;
+    background-color: grey;
+    z-index: 100;
+    padding: 0;
+    margin: 0;
+    top: -100px;
+    height: 100px;
+    width: 100vw;
+    transition: ease .2s;
+}
+
+.tab {
+    position: fixed;
+    z-index: 100;
+    top: -25px;
+    left: 50%;
+    margin-left: -25px;
+    width: 50px;
+    height: 50px;
+    background-color: grey;
+    border-radius: 50%;
+    transition: ease .2s;
+}
+
+#invis-extra {
+    position: fixed;
+    z-index: -10;
+    width: 100%;
+    height: 50px;
+    top: -100px;
+}
+
+.tab:hover,
+#invis-extra:hover + .tab,
+.top-bar:hover .tab {
+    top: 75px;
+}
+
+#invis-extra:hover + .top-bar,
+.top-bar:hover,
+.tab:hover + .top-bar {
+    top: 0%;
+}
+
+#invis-extra:hover,
+.top-bar:hover #invis-extra,
+.tab:hover + #invis-extra {
+    top: 100px;
+}
+
+.tab:hover #drop-arrow,
+.top-bar:hover #drop-arrow{
+    transform: rotate(180deg);
+}
+
+#drop-arrow {
+    position: relative;
+    display: block;
+    text-align: center;
+    height: 100%;
+    width: 100%;
+    margin-top: 10px;
+    font-size: 2.5rem;
+    color: black;
+    background-color: grey;
+    transition: ease .2s;
+}
+
+.options {
+    display: flex;
+    float: right;
+    align-content: flex-end;
+    justify-content: flex-end;
+}
+
+#nav-title {
+    display: inline-block;
+    height: 100%;
+    margin: 5px 10px;
+    font-size: 2rem;
+}
+
+.option {
+    padding: 10px 20px;
+    margin: 0 20px;
+    transition: .5s ease-in-out;
+}
+
+.option:hover {
+    background-color: darkgrey;
+}
+
+#kobold-equip-area {
+    flex-basis: 200%;
+}
+
+#weapon-rack {
+    display: inline-block;
+}
+
+#armor-rack {
+    display: inline-block;
+}
+
+#action-box {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: stretch;
+    height: 30%;
+    width: 100%;
+}
+
+.action-button {
+    display: inline-block;
+    flex-wrap: nowrap;
+    text-align: center;
+    border: 1px solid grey;
+    margin: 0 10px;
+    background: none;
+    height: 100%;
+    transition: ease-out .2s;
+}
+
+.action-button:hover {
+    transform: scale(1.1, 1.1);
+}
+
+.action-button:active {
+    transition: none;
+    transform: scale(.9, .9);
+}
+
+.inner-button-block {
+    display: flex;
+    justify-content: space-around;
+    width: 50%;
+}
+
+.coin-list {
+    list-style: none;
+    width: 30%;
+    margin: 10px;
+    display: flex;
+    flex-flow: column wrap;
+}
+
+.bar-container {
+    height: 5px;
+    border-radius: 5px;
+    width: 100%;
+    background-color: grey;
+    transition: .2s ease;
+}
+
+.energy-bar {
+    height: 5px;
+    background-color: yellow;
+}
+
+.hunger-bar {
+    
+    height: 5px;
+    background-color: brown;
+}
+
+.health-bar {
+    height: 5px;
+    background-color: red;
+}
+
+.coin-totals {
+    padding-right: 5px;
+}
+
+
+.inner-block {
+    display: flex;
+    margin: 0 auto;
+    border: 1px black solid;
+    width: 100%;
+}
+
+
+
+#inspector-stats {
+    display: flex;
+    font-size: 1.5rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 auto;
+}
+
+.stat-list {
+    font-size: 1rem;
+    padding: 5px;
+}
+
+#kobold-hoard-block {
+    height: 50%;
+}
+
+.color-woodNickel {
+    color: var(--coin-wood-color);
+}
+
+.color-copperCoin {
+    color: var(--coin-copper-color);
+}
+
+.color-brassCoin {
+    color: var(--coin-brass-color);
+}
+
+.color-bronzeCoin {
+    color: var(--coin-bronze-color);
+}
+
+.color-ironCoin {
+    color: var(--coin-iron-color);
+}
+
+.color-steelCoin {
+    color: var(--coin-steel-color);
+}
+
+.color-silverCoin {
+    color: var(--coin-silver-color);
+}
+
+.color-electrumCoin {
+    color: var(--coin-electrum-color);
+}
+
+.color-goldCoin {
+    color: var(--coin-gold-color);
+}
+
+.color-platinumCoin {
+    color: var(--coin-platinum-color);
+}
+
+.color-Apatite {
+    color: #c3b89c;
+}
+
+.color-Beryl {
+    color: #406E38;
+}
+
+.color-Citrine {
+    color: #e4d00a;
+}
+
+.color-Emerald {
+    color: #50c878;
+}
+
+.color-Garnet {
+    color: #733635;
+}
+
+.color-Jade {
+    color: #00a86b;
+}
+
+.color-Onyx {
+    color: #0f0f0f;
+}
+
+.color-Ruby {
+    color: #e0115f;
+}
+
+.color-Sapphire {
+    color:  #0f52ba;
+}
+
+.color-Spinel {
+    color: #995763;
+}
+
+.color-Topaz {
+    color: #ffc87c;
+}
+
+.color-Tanzanite {
+    color: #3b4b7f;
+}
+
+.color-Tourmaline {
+    color: #142d36;
+}
+
+#coin-block {
+    grid-area: coin-block;
+    background-color: darkgreen;
+}
+
+#outside-block {
+    grid-area: outside-block;
+    background-color: green;
+}
+
+#kobold-rest-block {
+    background-color: brown;
+    grid-area: kobold-rest-block;
+}
+
+#kobold-coin-block {
+    background-color: lightblue;
+    grid-area: kobold-coin-block;
+}
+
+#dragon-den-block {
+    display: flex;
+    flex-direction: column;
+    background-color: lightgrey;
+    grid-area: dragon-den-block;
+}
+
+#kobold-cook-block {
+    background-color: lightgreen;
+    grid-area: kobold-cook-block;
+}
+
+#kobold-smith-block {
+    background-color: grey;
+    grid-area: kobold-smith-block;
+}
+
+#kobold-camp-block {
+    background-color: greenyellow;
+    grid-area: kobold-camp-block;
+}
+
+#kobold-adventure-block {
+    background-color: indigo;
+}
+
+#the-dungeon {
+    grid-area: the-dungeon;
+}
+
+#kobold-adventure-block-monsters {
+    flex-direction: row-reverse;
+}
+
+#kobold-cost {
+    width: 100%;
+    text-align: center;
+    margin-top: 3px;
+}
+
+#kobold-sprites {
+    scale: 1;
+}
+
+#inspector-canvas {
+    flex-basis: 33%;
+    width: 100px;
+    height: 100px;
+    max-width: 100px;
+    max-height: 100px;    
+}
+
+canvas {
+    image-rendering: pixelated;
+    margin: auto;
+    width: 100px;
+    height: 100px;
+    padding: 5px;
+}
+
+.kobold-yip {
+    animation-duration: .8s;
+    animation-name: text-float;
+    position: absolute;
+    text-align: center;
+}
+
+
+@keyframes text-float {
+    from {
+
+    }
+
+    20% {
+        font-size: 2rem;
+        transform: translateY(-4vh)
+    }
+
+    to {
+        transform: translateY(-8vh);
+        color: rgba(154, 205, 50, 0);
+    }
+}
+
+#coin-box {
+    display: inline;
+    font-size: 1rem;
+    text-align: center;
+}
+
+#coin-block-title {
+    height: 12%;
+    font-size: 2rem;
+}
+
+#coin-box {
+    line-height: 1.5rem;
+}
+
+.dragon {
+    object-fit: contain;
+    border: 1px solid white;
+}
+
+.kobold-unit {
+    display: flex;
+    flex-direction: column;
+    height: 150px;
+    width: 100px;
+    z-index: 80;
+}
+
+.monster-unit {
+    display: flex;
+    flex-direction: column;
+    height: 150px;
+    width: 100px;
+    z-index: 80;
+}
+
+.kobold-unit-move-out {
+    animation-duration: .5s;
+    animation-name: kobold-move-out;
+}
+
+.kobold-unit-move-in {
+    animation-duration: .5s;
+    animation-name: kobold-move-in;
+}
+
+@keyframes kobold-move-out {
+    from {
+        
+    }
+
+    to {
+        transform: translateX(50vw);
+    }
+}
+
+@keyframes kobold-move-in {
+    from {
+        transform: translateX(50vw);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+#upgrades-box {
+    flex-flow: row wrap;
+}
+
+#upgrades-box .action-button {
+    width: 50%;
+    height: 50%;
+    margin: 0;
+    padding: 0;
+}
+
+.kobold-unit {
+    transition: .1s ease;
+}
+
+.kobold-unit:active{
+    background: radial-gradient(circle at center 45px, rgba(96,88,247,1), transparent 30%);
+}
+
+.kobold-unit-portrait {
+    position: relative;
+    height: 100px;
+    width: 100px;
+    background-image: url('kobold.png');
+    background-repeat: no-repeat;
+}
+
+.kobold-unit-name {
+    position: relative;
+    text-align: center;
+}
+
+.kobold-unit:hover {
+    transform: translate(0, -10%);
+}
+
+/* Create the game block.  Create a basic mapping of the grid here. */
+
+#game-block {
+    display: grid;
+    background-color: darkslategray;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr 1fr;
+    grid-template-areas:
+                "outside-block     dragon-den-block coin-block"
+                "kobold-rest-block dragon-den-block kobold-coin-block"
+                "kobold-cook-block dragon-den-block kobold-smith-block"
+                "kobold-camp-block the-dungeon the-dungeon";
+    grid-row: auto;
+    grid-column: auto;
+    grid-gap: 5px 5px;
+    justify-items: stretch;
+    align-items: stretch;
+    padding: 30px 10px 10px 10px;  
+}

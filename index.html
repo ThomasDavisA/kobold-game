@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kobolds!</title>
+</head>
+
+<body>
+    <link rel="stylesheet" type="text/css" href="interface.css" />
+
+    <nav class="top-bar" id="top-bar">
+        <p id="nav-title">Kobold Cave!</p>
+        <ul class="options">
+            <li class="option">Kobolds!</li>
+            <li class="option" id="how-to-button">How-To
+                <div id="how-to">
+                    <div id="background-help">
+                        <h2>How to play Kobold Cave</h2>
+                        <p class="game-help-text">Kobold Cave is a simple game where you buy Kobolds in an effort to
+                            make a platinum
+                            coin to wake the dragon! Kobolds can be used to craft coins, trades coins from the outside,
+                            make
+                            equipment,
+                            and use that equipment to fight monsters in the dungeons!</p>
+                        <p class="game-help-text">Every kobold has a two basic stats: Energy (<i
+                                class="fas fa-battery-full"></i>),
+                            and
+                            Hunger (<i class="fas fa-leaf"></i>). Go to the den to rest, and go to the cooking energy to
+                            fill up!
+                            Kobolds will automatically go to these locations when they run out of hunger or energy.</p>
+                        <p class="game-help-text">Kobolds gain experience when they do things. The four kinds of
+                            Experience are:
+                            <ul id="game-help-list">
+                                <li><i class="fas fa-award"></i>: General Experience</li>
+                                <p>This is gained through just existing and cooking!</p>
+                                <li><i class="fas fa-exchange-alt"></i>: Crafting Experience</li>
+                                <p>This is gained through crafting coins or smithing equipment!</p>
+                                <li><i class="fas fa-hammer"></i>: Trading Experience</li>
+                                <p>This is gained by trading coins in the outside world!</p>
+                                <li><i class="fas fa-flag"></i>: Adventuring Experience</li>
+                                <p>This is gained by fighting monsters in the dungeon!</p>
+                            </ul>
+                        </p>
+                        <p class="game-help-text">Kobolds can also adventure in the Dungeon. They require a weapon and
+                            an armor
+                            though,
+                            and will run when a piece breaks. Move them to the entrance to give them equipment if there
+                            are any to
+                            take, and
+                            they'll automatically go into the dungeon to fight! Defeating creatures in the dungeon
+                            yields valuable
+                            gems (<i class="fas fa-gem"></i>)
+                            to help speed up your progress toward waking the dragon!</p>
+                    </div>
+                </div>
+            </li>
+            <li class="option">
+                <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+                    <input type="hidden" name="cmd" value="_donations" />
+                    <input type="hidden" name="business" value="HWM2SYEZUH3H4" />
+                    <input type="hidden" name="currency_code" value="USD" />
+                    <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif" border="0"
+                        name="submit" title="PayPal - The safer, easier way to pay online!"
+                        alt="Donate with PayPal button" />
+                    <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" />
+                </form>
+            </li>
+        </ul>
+        <div id="invis-extra"></div>
+        <div class="tab">
+            <p>
+                <i class="fas fa-arrow-down" id="drop-arrow"></i>
+            </p>
+        </div>
+    </nav>
+
+
+
+    <div class="end-box" id="end-box">
+        <p class="inner-block" id="end-text">
+
+        </p>
+        <button class="action-button" id="restart" onclick="restartGame()"> Click to start again! </button>
+    </div>
+
+    <div class="area-block" id="game-block">
+        <div class="title-block" id="outside-title">
+            The Outside...
+            <div class="area-block" id="outside-block"></div>
+        </div>
+
+        <div class="area-block" id="dragon-den-block">
+            <p class="inner-block" id="coin-block-title">The Vault</p>
+            <div class="inner-block" id="coin-gem-block">
+                <ul class="coin-list inner-block" id="coin-list">
+                    <li class="coin-totals" id="coin-count-wood"><i class="fas color-woodNickel fa-coins"></i>: 0</li>
+                    <li class="coin-totals" id="coin-count-copper"><i class="fas fa-coins"></i>: 0</li>
+                    <li class="coin-totals" id="coin-count-brass"><i class="fas fa-coins"></i>: 0</li>
+                    <li class="coin-totals" id="coin-count-bronze"><i class="fas fa-coins"></i>: 0</li>
+                    <li class="coin-totals" id="coin-count-iron"><i class="fas fa-coins"></i>: 0</li>
+                    <li class="coin-totals" id="coin-count-steel"><i class="fas fa-coins"></i>: 0</li>
+                    <li class="coin-totals" id="coin-count-silver"><i class="fas fa-coins"></i>: 0</li>
+                    <li class="coin-totals" id="coin-count-electrum"><i class="fas fa-coins"></i>: 0</li>
+                    <li class="coin-totals" id="coin-count-gold"><i class="fas fa-coins"></i>: 0</li>
+                    <li class="coin-totals" id="coin-count-platinum"><i class="fas fa-coins"></i>: 0</li>
+                </ul>
+                <ul class="coin-list inner-block" id="gem-list">
+                    <li class="coin-totals" id="gem-count-Apatite"></li>
+                    <li class="coin-totals" id="gem-count-Beryl"></li>
+                    <li class="coin-totals" id="gem-count-Citrine"></li>
+                    <li class="coin-totals" id="gem-count-Emerald"></li>
+                    <li class="coin-totals" id="gem-count-Garnet"></li>
+                    <li class="coin-totals" id="gem-count-Jade"></li>
+                    <li class="coin-totals" id="gem-count-Onyx"></li>
+                    <li class="coin-totals" id="gem-count-Ruby"></li>
+                    <li class="coin-totals" id="gem-count-Sapphire"></li>
+                    <li class="coin-totals" id="gem-count-Spinel"></li>
+                    <li class="coin-totals" id="gem-count-Topaz"></li>
+                    <li class="coin-totals" id="gem-count-Tanzanite"></li>
+                    <li class="coin-totals" id="gem-count-Tourmaline"></li>
+                </ul>
+            </div>
+
+            <div class="inner-block" id="action-box">
+                <div class="inner-button-block" id="action-button-box">
+                    <button class="action-button" id="coin-create-button" type="button"><i id="coin-button-icon"
+                            class="fas color-woodNickel fa-coins"></i> Create Coin</button>
+                    <button class="action-button" type="button" onclick="buyKobold()">Buy a Kobold<span
+                            id="kobold-cost"></span></button>
+                </div>
+                <div class="inner-button-block" id="upgrades-box">
+                    <button class="action-button" id="smith-upgrade" type="button">Upgrade Kobold Tools<span
+                            id="kobold-cost2"></span></button>
+                    <button class="action-button" id="coin-upgrade" type="button">Upgrade Coin Quality<span
+                            id="kobold-cost2"></span></button>
+                    <button class="action-button" id="dungeon-upgrade" type="button">More Monsters!<span
+                            id="kobold-cost2"></span></button>
+                    <button class="action-button" id="trade-upgrade" type="button">Better Kobold-speak<span
+                            id="kobold-cost2"></span></button>
+                </div>
+            </div>
+
+
+            <img class="dragon inner-block" id="player-dragon" src="dragon.png">
+            <div class="inner-block" id="kobold-hoard-block"></div>
+
+        </div>
+        <div class="area-block" id="coin-block">
+            <div class="inner-block" id="inspector-block">
+                <canvas class="inner-block" id="inspector-canvas"></canvas>
+                <div class="inner-block" id="inspector-stats"></div>
+                <p class="inspect-icon"><i class="fas fa-search"></i></p>
+
+            </div>
+        </div>
+        <div class="title-block" id="kobold-rest-title">
+            Kobold's Resting Den <i class="fas fa-battery-full"></i>
+            <div class="area-block" id="kobold-rest-block"></div>
+        </div>
+        <div class="title-block" id="kobold-coin-title">
+            The Coin Crafter's Station <i class="fas fa-coins"></i>
+            <div class="area-block" id="kobold-coin-block"></div>
+        </div>
+
+        <div class="title-block" id="kobold-cook-title">
+            Kobold's Cooking Area <i class="fas fa-leaf"></i>
+            <p id="kobold-cook-food-count"></p>
+            <div class="area-block" id="kobold-cook-block"></div>
+        </div>
+
+        <div class="title-block" id="kobold-smith-title">
+            Kobold Smithery <i class="fas fa-hammer"></i>
+            <div class="area-block" id="kobold-smith-block"></div>
+        </div>
+
+        <div class="title-block" id="kobold-camp-title">
+            Entrance to the Dungeon <i class="fas fa-flag"></i>
+            <div class="area-block" id="kobold-camp-block">
+                <div class="inner-block" id="weapon-rack"></div>
+                <div class="inner-block" id="kobold-equip-area"></div>
+                <div class="inner-block" id="armor-rack"></div>
+            </div>
+        </div>
+
+        <div class="title-block" id="the-dungeon">
+            The Dungeon <i class="fas fa-flag"></i>
+            <div class="area-block" id="kobold-adventure-block">
+                <div class="inner-block" id="kobold-adventure-block-kobolds"></div>
+                <div class="inner-block" id="kobold-adventure-block-monsters"></div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <img id="kobold-sprites" src="kobold_sprites.png">
+    <img id="monster-sprites" src="monster_sprites.png">
+    <img id="equipment-sprites" src="equipment_sheet.png">
+    <img id="kobold-test" src="kobold_test.png">
+    <script type="text/javascript" src="main.js"></script>
+    <script type="text/javascript" src="koboldNameList.js"></script>
+    <script src="https://kit.fontawesome.com/dc8d284b34.js" crossorigin="anonymous"></script>
+</body>
+
+</html>
