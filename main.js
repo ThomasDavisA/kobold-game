@@ -19,7 +19,7 @@ const REST_TICK_MULTIPLIER = 5;
 const COOK_TICK_MULTIPLIER = 4;
 const TRADE_TICK_MULTIPLIER = 2;
 const HOARD_TICK_MULTIPLIER = 10;
-const CRAFT_TICK_MULTIPLIER = 1.75;
+const CRAFT_TICK_MULTIPLIER = 2;
 const CAMP_TICK_MULTIPLIER = 6;
 const DUNGEON_TICK_MULTIPLIER = 8;
 
@@ -233,10 +233,12 @@ function createMonster(idNum) {
         name: "slime",
         id: idNum,
         hasActed: false,
+        currentTick: 0,
+        totalTick: 1000,
         spriteID: 0,
         currentHP: 5,
         maxHP: 5,
-        attack: 1,
+        attack: 5,
 
         getAttack: function () {
             return this.attack;
@@ -246,10 +248,16 @@ function createMonster(idNum) {
             this.currentHP -= damage;
         },
 
-        checkMonsterAttack: function (koboldTarget) {
-            if (!this.hasActed) {
-                this.hasActed == true;
-                return true;
+        checkMonsterAttack: function () {
+            let checkKoboldAdv = document.getElementById('kobold-adventure-block-kobolds').querySelectorAll('.kobold-unit');
+            if (checkKoboldAdv.length > 0) {
+                let tankKobold = checkKoboldAdv[checkKoboldAdv.length - 1];
+                let tankID = tankKobold.id.match(/\d+/) - 1;
+
+                let damage = Math.floor((Math.random() * this.attack));
+                playerStatus.koboldList[tankID].reduceDur('armor', damage);
+                playerStatus.koboldList[tankID].giveXP('adventure', damage);
+                playerStatus.koboldList[tankID].checkEquipment();
             }
         },
 
@@ -259,6 +267,13 @@ function createMonster(idNum) {
             }
         },
 
+        monsterTick: function () {
+            this.currentTick++;
+            if (this.currentTick >= this.totalTick) {
+                this.currentTick = 0;
+                this.checkMonsterAttack();
+            }
+        }
     }
 }
 
@@ -340,6 +355,8 @@ function displayMonster(monster) {
     let monsterDivName = document.createElement("div");
     let monsterHealthBarContainer = document.createElement("div");
     let monsterHealthBar = document.createElement("div");
+    let monsterSpeedBarContainer = document.createElement("div");
+    let monsterSpeedBar = document.createElement("div");
 
     let monsterCanvas = document.createElement("canvas");
     monsterCanvas.width = 80;
@@ -360,11 +377,15 @@ function displayMonster(monster) {
     monsterDivName.classList.add("kobold-unit-name");
     monsterHealthBarContainer.classList.add("bar-container");
     monsterHealthBar.classList.add("health-bar");
-    monsterHealthBarContainer.appendChild(monsterHealthBar);
+    monsterSpeedBarContainer.classList.add("bar-container");
+    monsterSpeedBar.classList.add("speed-bar");
+    monsterHealthBarContainer.append(monsterHealthBar);
+    monsterSpeedBarContainer.append(monsterSpeedBar);
+    
     monsterDiv.id = `monster_${monster.id}`;
     monsterDiv.append(monsterCanvas);
     monsterDiv.append(monsterDivName);
-    monsterDiv.append(monsterHealthBarContainer);
+    monsterDiv.append(monsterHealthBarContainer, monsterSpeedBarContainer);
     document.getElementById('kobold-adventure-block-monsters').appendChild(monsterDiv);
 }
 
@@ -802,77 +823,6 @@ window.setInterval(function () {
 
     for (const kobold of playerStatus.koboldList) {
         kobold.koboldTick();
-
-        /*
-        if (kobold.isMoving == 0) {
-
-            let koboldGenXPTotal = 0;
-
-            if (kobold.presentLocation === 'kobold-coin-block') {
-                
-
-            if (kobold.presentLocation === 'outside-block') {
-                
-            }
-
-            if (kobold.presentLocation == 'kobold-hoard-block') {
-
-
-            }
-
-
-            if (kobold.presentLocation == 'kobold-cook-block') {
-               
-            }
-
-
-            if (kobold.presentLocation == 'kobold-smith-block') {
-                
-            }
-
-            //Check for equipment, and get equipment!  If the kobold is fully equipped, go to the adventure zone!  Otherwise, go back to rest.
-            if (kobold.presentLocation == 'kobold-equip-area') {
-               
-            }
-
-
-            //let checkKoboldAdv = document.getElementById('kobold-adventure-block-kobolds').querySelectorAll('.kobold-unit');
-
-            //Time for adventure -- Check for monsters and fight them, running away if
-            //any piece of equipment breaks on us.  If we defeat a monster, we get loot.
-            if (kobold.presentLocation == 'kobold-adventure-block-kobolds') {
-                
-            }
-
-            if (kobold.presentLocation == 'kobold-rest-block') {
-                
-            }
-
-            //Check Energy and Hunger -- Energy takes priority over Hunger
-            if (kobold.currentHunger <= 0) {
-                if (kobold.currentEnergy <= 0) {
-                    console.log(`${kobold.id} is tired!`);
-                    moveKobold(`kobold_${kobold.id}`, 'kobold-rest-block', `kobold_${kobold.id}`);
-                }
-                console.log(`${kobold.id} is hungry!`);
-                if (kobold.presentLocation !== 'kobold-cook-block') {
-                    moveKobold(`kobold_${kobold.id}`, 'kobold-cook-block', `kobold_${kobold.id}`);
-                }
-            }
-            if (kobold.currentEnergy <= 0) {
-                console.log(`${kobold.id} is tired!`);
-                moveKobold(`kobold_${kobold.id}`, 'kobold-rest-block', `kobold_${kobold.id}`);
-            }
-
-            kobold.currentEnergy -= 1;
-            kobold.currentHunger -= 1;
-            kobold.giveXP('general', 1 + koboldGenXPTotal);
-
-            
-        } else {
-     
-        }
-        */
     }
 
     //Does the player have enough coins to wake the dragon?
@@ -882,7 +832,9 @@ window.setInterval(function () {
 
     for (const monster of playerStatus.monsterList) {
         //Update monster HP here -- there's no where else to update it right now!
+        monster.monsterTick();
         document.getElementById(`monster_${monster.id}`).children[2].children[0].style.width = Math.floor((monster.currentHP / monster.maxHP) * 100) + "%";
+        document.getElementById(`monster_${monster.id}`).children[3].children[0].style.width = Math.floor((monster.currentTick / monster.totalTick) * 100) + "%";
     }
 
 

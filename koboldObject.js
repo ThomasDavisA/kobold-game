@@ -351,7 +351,7 @@ function createKobold(id) {
                     this.koboldYip('food-eat', (foodChange * -1), `kobold-cook-block`);
                     this.koboldYip('food', foodMade, `kobold-cook-food-count`);
                 }
-                document.getElementById(`kobold_${this.id}`).children[4].children[0].style.width = Math.floor((this.currentHunger / this.maxHunger) * 100) + "%";  
+                document.getElementById(`kobold_${this.id}`).children[4].children[0].style.width = Math.floor((this.currentHunger / this.maxHunger) * 100) + "%";
             }
         },
 
@@ -487,7 +487,7 @@ function createKobold(id) {
                     if (throwAwayflag) {
                         this.koboldYip('error', 'too_many_armors', this.id)
                     } else {
-                        playerStatus.armorRack.push(createItem(armorArray.type, armorArray.subtype, itemDurabilty, itemName, itemOffsetX, itemOffsetY));
+                        playerStatus.armorRack.push(createItem(armorArray.type, armorArray.subtype, 1, itemName, itemOffsetX, itemOffsetY));
 
                         displayRacks();
                     }
@@ -544,15 +544,19 @@ function createKobold(id) {
             //check for a monster
             //if there is none, generate one!
             if (checkMonsters.length == 0) {
-                let newMonster = createMonster(playerStatus.monsterList.length);
-                playerStatus.monsterList.push(newMonster);
-                displayMonster(playerStatus.monsterList[0]);
+                //generate a random amount of monsters
+                let numMonster = Math.floor(Math.random() * 4) + 1;
+                for (let i = 0; i < numMonster; i++) {
+                    let newMonster = createMonster(playerStatus.monsterList.length);
+                    playerStatus.monsterList.push(newMonster);
+                    displayMonster(playerStatus.monsterList[i]);
+                }
+
                 checkMonsters = document.getElementById('kobold-adventure-block-monsters').querySelectorAll('.monster-unit');
             }
 
             let monsterArrayEnd = checkMonsters.length - 1;
             //attack the monster
-            //We check death here before monster attacks to allow kobold to not take a hit
             playerStatus.monsterList[monsterArrayEnd].takeDamage(1 + this.skills.adventureSkills.damage);
             this.koboldYip('damage', 1 + this.skills.adventureSkills.damage, `monster_${playerStatus.monsterList[monsterArrayEnd].id}`);
             if (playerStatus.monsterList[monsterArrayEnd].checkDeath()) {
@@ -568,20 +572,8 @@ function createKobold(id) {
             //subtract weapon dur
             this.reduceDur('weapon');
 
-            //monster attacks! (if they are alive)
-            let tankID = tankKobold.id.match(/\d+/) - 1;
-            if (checkMonsters.length > 0) {
-                if (playerStatus.monsterList[monsterArrayEnd].checkMonsterAttack()) {
-                    playerStatus.koboldList[tankID].reduceDur('armor');
-                }
-                koboldAdvXP += playerStatus.monsterList[monsterArrayEnd].attack;
-            }
-
             //check for equipment break
-            if (this.checkEquipment()) {
-                moveKobold(`kobold_${this.id}`, 'kobold-equip-area');
-                koboldAdvXP += (this.skills.adventureSkills.level + this.skills.generalSkills.bonus);
-            }
+            this.checkEquipment();
 
             this.giveXP('adventuring', koboldAdvXP);
         },
@@ -759,7 +751,7 @@ function createKobold(id) {
             this.workLocation = work;
         },
 
-        reduceDur: function (type) {
+        reduceDur: function (type, num) {
             switch (type) {
                 case 'weapon':
                     this.equipWeapon.durabilty--;
@@ -791,6 +783,10 @@ function createKobold(id) {
                 retreatFlag = true;
             }
 
+            //check for equipment break
+            if (retreatFlag === true) {
+                moveKobold(`kobold_${this.id}`, 'kobold-equip-area');
+            }
             return retreatFlag;
         },
 
