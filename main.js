@@ -15,6 +15,13 @@ const PIXEL_HEIGHT = 32;
 const EQUIPMENT_PIXEL_WIDTH_HEIGHT = 512;
 const PIXEL_OFFSET_X = 16;
 const GENERIC_TYPES = 3;
+const REST_TICK_MULTIPLIER = 5;
+const COOK_TICK_MULTIPLIER = 4;
+const TRADE_TICK_MULTIPLIER = 2;
+const HOARD_TICK_MULTIPLIER = 10;
+const CRAFT_TICK_MULTIPLIER = 1.75;
+const CAMP_TICK_MULTIPLIER = 6;
+const DUNGEON_TICK_MULTIPLIER = 8;
 
 //const references?
 const COLOR_WOODNICKEL = 'color-wood';
@@ -59,11 +66,11 @@ function coinClick() {
 
 function upgradeCheck(checkID) {
     //Check to see what we're doing, and then apply it!  Each upgrade only goes up to level 5.
-    
-    
+
+
     switch (checkID) {
         case 'smith':
-        
+
             break;
         case 'coin':
             break;
@@ -660,10 +667,8 @@ function checkClick(event) {
                 playerStatus.tempId = null;
                 removeDetails();
             }
-            console.log(`Clicked ${event.target.id}!`);
             break;
         default:
-            console.log(`Clicked ${event.target.id}~`);
             if (playerStatus.tempId) { playerStatus.tempId = null; }
     }
 }
@@ -673,10 +678,38 @@ function dragonSnooze() {
 }
 
 function moveKobold(idRef, newArea) {
+    //idref is a string as a div, ie 'kobold_1'
     //store our kobold in a temp variable
     let tempID = getIDFromDiv(idRef);
     if (newArea !== playerStatus.koboldList[tempID].nextLocation) {//Is this where the Kobold already is?
         playerStatus.koboldList[tempID].nextLocation = newArea;
+        //Apply our multiplier for ticks
+        switch (newArea) {
+            case 'outside-block':
+                playerStatus.koboldList[tempID].tickMultiplier = TRADE_TICK_MULTIPLIER;
+                break;
+            case 'kobold-rest-block':
+                playerStatus.koboldList[tempID].tickMultiplier = REST_TICK_MULTIPLIER;
+                break;
+            case 'kobold-coin-block':
+                playerStatus.koboldList[tempID].tickMultiplier = CRAFT_TICK_MULTIPLIER;
+                break;
+            case 'kobold-hoard-block':
+                playerStatus.koboldList[tempID].tickMultiplier = HOARD_TICK_MULTIPLIER;
+                break;
+            case 'kobold-smith-block':
+                playerStatus.koboldList[tempID].tickMultiplier = CRAFT_TICK_MULTIPLIER;
+                break;
+            case 'kobold-cook-block':
+                playerStatus.koboldList[tempID].tickMultiplier = COOK_TICK_MULTIPLIER;
+                break;
+            case 'kobold-equip-area':
+                playerStatus.koboldList[tempID].tickMultiplier = CAMP_TICK_MULTIPLIER;
+                break;
+            case 'kobold-camp-block':
+                playerStatus.koboldList[tempID].tickMultiplier = CAMP_TICK_MULTIPLIER;
+                break;
+        }
         playerStatus.koboldList[tempID].isMoving = true;
         document.getElementById(idRef).className = "kobold-unit-move-out";
     }
@@ -766,7 +799,7 @@ function returnRandomGem() {
 }
 
 window.setInterval(function () {
-    
+
     for (const kobold of playerStatus.koboldList) {
         kobold.koboldTick();
 

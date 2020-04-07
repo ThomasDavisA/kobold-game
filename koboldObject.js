@@ -37,6 +37,7 @@ function createKobold(id) {
         hungerTickSpeed: 500,
         currentTick: 0,
         koboldTickSpeed: 2000,
+        tickMultiplier: 3,
         totalCoin: {   //Object of Coins
             woodNickel: 0,
             copperCoin: 0,
@@ -116,7 +117,7 @@ function createKobold(id) {
             if (this.isMoving) {
                 return;
             }
-            this.currentTick++;
+            this.currentTick += 1 * this.tickMultiplier;
             if (this.currentTick >= this.koboldTickSpeed) {
 
                 this.currentTick = 0;
@@ -127,7 +128,7 @@ function createKobold(id) {
 
         koboldEnergyTick: function () {
             this.energyCurrentTick = 0;
-            if (this.workLocation !== 'kobold-rest-block') {
+            if (this.presentLocation !== 'kobold-rest-block') {
                 this.currentEnergy--;
             }
             document.getElementById(`kobold_${this.id}`).children[3].children[0].style.width = Math.floor((this.currentEnergy / this.maxEnergy) * 100) + "%";
@@ -138,11 +139,11 @@ function createKobold(id) {
 
         koboldHungerTick: function () {
             this.hungercurrentTick = 0;
-            if (this.workLocation !== 'kobold-cook-block') {
+            if (this.presentLocation !== 'kobold-cook-block') {
                 this.currentHunger--;
             }
-            document.getElementById(`kobold_${kobold.id}`).children[4].children[0].style.width = Math.floor((this.currentHunger / this.maxHunger) * 100) + "%";
-            if (this.currentHunger <= 0 && this.currentEnergy >= 10) {
+            document.getElementById(`kobold_${this.id}`).children[4].children[0].style.width = Math.floor((this.currentHunger / this.maxHunger) * 100) + "%";
+            if (this.currentHunger <= 0 && this.currentEnergy >= 10 && this.presentLocation !== 'kobold-cook-block') {
                 moveKobold(`kobold_${this.id}`, 'kobold-cook-block', `kobold_${this.id}`);
             }
         },
@@ -357,7 +358,7 @@ function createKobold(id) {
         koboldRest: function () {
             //sleepy times, sleep to recover energy, any kobold out of energy
             //will immediately be placed here
-            let energyRecover = Math.floor(Math.random() * ((3 + kobold.skills.generalSkills.bonus) * BASE_LEVEL_POWER_MULTIPLIER));
+            let energyRecover = Math.floor(Math.random() * ((3 + this.skills.generalSkills.bonus) * BASE_LEVEL_POWER_MULTIPLIER));
             this.currentEnergy += energyRecover;
             //Full on energy?  back to work!
             if (this.currentEnergy >= this.maxEnergy) {
