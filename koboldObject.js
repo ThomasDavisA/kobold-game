@@ -29,8 +29,14 @@ function createKobold(id) {
         workLocation: "",
         currentEnergy: 500,
         maxEnergy: 500,
+        energyCurrentTick: 0,
+        energyTickSpeed: 1000,
         currentHunger: 100,
         maxHunger: 100,
+        hungercurrentTick: 0,
+        hungerTickSpeed: 500,
+        currentTick: 0,
+        koboldTickSpeed: 2000,
         totalCoin: {   //Object of Coins
             woodNickel: 0,
             copperCoin: 0,
@@ -97,6 +103,487 @@ function createKobold(id) {
         },
         equipArmor: {},
         equipWeapon: {},
+
+        koboldTick: function () {
+            this.energyCurrentTick++;
+            this.hungercurrentTick++;
+            if (this.energyCurrentTick >= this.energyTickSpeed) {
+                this.koboldEnergyTick();
+            }
+            if (this.hungercurrentTick >= this.hungerTickSpeed) {
+                this.koboldHungerTick();
+            }
+            if (this.isMoving) {
+                return;
+            }
+            this.currentTick++;
+            if (this.currentTick >= this.koboldTickSpeed) {
+
+                this.currentTick = 0;
+                this.koboldCheckLocation();
+            }
+            document.getElementById(`kobold_${this.id}`).children[2].children[0].style.width = Math.floor((this.currentTick / this.koboldTickSpeed) * 100) + "%";
+        },
+
+        koboldEnergyTick: function () {
+            this.energyCurrentTick = 0;
+            if (this.workLocation !== 'kobold-rest-block') {
+                this.currentEnergy--;
+            }
+            document.getElementById(`kobold_${this.id}`).children[3].children[0].style.width = Math.floor((this.currentEnergy / this.maxEnergy) * 100) + "%";
+            if (this.currentEnergy <= 0) {
+                moveKobold(`kobold_${this.id}`, 'kobold-rest-block', `kobold_${this.id}`);
+            }
+        },
+
+        koboldHungerTick: function () {
+            this.hungercurrentTick = 0;
+            if (this.workLocation !== 'kobold-cook-block') {
+                this.currentHunger--;
+            }
+            document.getElementById(`kobold_${kobold.id}`).children[4].children[0].style.width = Math.floor((this.currentHunger / this.maxHunger) * 100) + "%";
+            if (this.currentHunger <= 0 && this.currentEnergy >= 10) {
+                moveKobold(`kobold_${this.id}`, 'kobold-cook-block', `kobold_${this.id}`);
+            }
+        },
+
+        koboldCheckLocation: function () {
+            switch (this.presentLocation) {
+                case 'kobold-coin-block':
+                    this.koboldCraftCoins();
+                    break;
+                case 'outside-block':
+                    this.koboldTradeCoins();
+                    break;
+                case 'kobold-hoard-block':
+                    this.koboldHoard();
+                    break;
+                case 'kobold-cook-block':
+                    this.koboldCookAndEat();
+                    break;
+                case 'kobold-rest-block':
+                    this.koboldRest();
+                    break;
+                case 'kobold-smith-block':
+                    this.koboldSmithItem();
+                    break;
+                case 'kobold-equip-area':
+                    this.koboldCheckEquip();
+                    break;
+                case 'kobold-adventure-block-kobolds':
+                    this.koboldAdventureTime();
+                    break;
+            }
+        },
+
+        koboldCraftCoins: function () {
+            let qualityLevel = 0;
+            let coinList = Object.keys(playerStatus.coinPurse);
+            let gemsHeld = Object.values(playerStatus.gemPurse).reduce((acc, val) => acc + val);
+
+            //Check for a gem chance first, so we can crush a gem for a chance of higher quality coins, up to 8 times
+            let gemCrushChance = Math.floor((Math.random() * 100) + ((this.skills.craftingSkills.level + this.skills.craftingSkills.bonus) / 2));
+            if (gemsHeld > 0 && gemCrushChance >= 90) {
+                let gemCrushMessage = '';
+                let gemLoop = true;
+                while (gemLoop) {
+                    let gemToCrush = returnRandomGem();
+                    playerStatus.gemPurse[gemToCrush] -= 1;
+                    gemCrushMessage = `${gemCrushMessage} <i class="fas color-${gemToCrush} fa-gem"></i>`;
+                    qualityLevel++;
+                    gemCrushChance = Math.floor((Math.random() * 100) + ((this.skills.craftingSkills.bonus) / 3));
+                    if ((gemsHeld > 0 && gemCrushChance >= 90) && qualityLevel <= 8) {
+                        gemLoop = true;
+                    } else {
+                        gemLoop = false;
+                    }
+                }
+                this.koboldYip("gem_crush", gemCrushMessage, `kobold_${this.id}`);
+            }
+            //kobold should make coin based on level and get exp
+            let coinQuality = coinList[qualityLevel];
+            let koboldCoinCreate = Math.floor((this.skills.craftingSkills.level + this.skills.generalSkills.level + this.skills.craftingSkills.bonus) / 2);
+
+            if ((this.totalCoin[coinQuality] + koboldCoinCreate) >= this.coinCapacity) {
+                this.koboldYip("overCap", null, `kobold_${this.id}`);
+                this.totalCoin[coinQuality] = this.coinCapacity;
+                moveKobold(`kobold_${this.id}`, 'kobold-hoard-block');
+            } else {
+                this.koboldYip("coin", koboldCoinCreate, `kobold_${this.id}`);
+                this.totalCoin[coinQuality] += koboldCoinCreate;
+            }
+            this.giveXP('crafting', Math.floor(koboldCoinCreate + (koboldCoinCreate * qualityLevel) / BASE_CONVERSION_FACTOR) + 1);
+        },
+
+        koboldTradeCoins: function () {
+            //kobold to trade coins out for higher value ones at a cost
+            //currently 100% efficient, but will include cost variable later
+            const TRADE_FACTOR = 1.2;
+            let coinsHeld = Object.values(this.totalCoin).reduce((acc, val) => acc + val);
+            //Lets make sure they even have coins, and if they don't, run back to the hoard to get some!
+            if (this.isTrading === false && coinsHeld < (10 * TRADE_FACTOR)) {
+                if (this.coinCapacity < BASE_CONVERSION_FACTOR * TRADE_FACTOR) {
+                    this.koboldYip('error', 'not_enough_cap', this.id)
+                    this.workLocation = 'kobold-rest-block';
+                    moveKobold(`kobold_${this.id}`, 'kobold-rest-block');
+                } else {
+                    this.isTrading = true;
+                    this.isStillTrading = true;
+                    this.workLocation = `outside-block`;
+                    this.koboldYip('error', 'no_coin', this.id)
+                    moveKobold(`kobold_${this.id}`, 'kobold-hoard-block');
+                }
+
+            }
+
+            if (this.isTrading === true || coinsHeld >= (10 * TRADE_FACTOR)) {
+                let tradedOnce = false;
+                let tradeExponent = 0;
+                let koboldCoinKeys = Object.keys(this.totalCoin);
+                let totalTrades = 0;
+                for (const coinTypes of koboldCoinKeys) {
+                    if (this.totalCoin[coinTypes] >= 10 * TRADE_FACTOR) {
+                        let coinTypeFind = Object.keys(this.totalCoin).indexOf(coinTypes) + 1;
+                        let coinTypeUp = Object.keys(this.totalCoin)[coinTypeFind];
+                        this.koboldYip('take', this.totalCoin, `kobold_${this.id}`);
+                        if (coinTypeFind <= 10) {
+                            //So long as the coin type is not plat, we don't convert plat
+                            while (this.totalCoin[coinTypes] >= (10 * TRADE_FACTOR)) {
+                                this.totalCoin[coinTypes] -= (10 * TRADE_FACTOR);
+                                this.totalCoin[coinTypeUp] += 1;
+                                totalTrades++;
+                            }
+                            tradedOnce = true;
+                            tradeExponent = Object.keys(this.totalCoin).indexOf(coinTypes);
+                        }
+
+                        this.koboldYip('coin', this.totalCoin, `kobold_${this.id}`);
+                    }
+                };
+
+                if (tradedOnce) {
+                    //create trade exp
+                    this.isTrading = false;
+                    this.giveXP('trading', Math.floor(this.skills.tradingSkills.bonus + totalTrades * BASE_SUB_MULTIPLIER));
+                    moveKobold(`kobold_${this.id}`, 'kobold-hoard-block');
+                }
+            }
+        },
+
+        koboldHoard: function () {
+            //drop off your coins and go back to where you came!
+            if (this.isTrading === false) {
+                playerStatus.addCoins(this.totalCoin);
+                this.koboldYip('coin', this.totalCoin, 'coin-gem-block');
+                this.koboldYip('take', this.totalCoin, `kobold_${this.id}`);
+                this.emptyPurse();
+                this.giveXP('general', this.coinCapacity);
+                if (this.isStillTrading === true) {
+                    this.isTrading = true;
+                    return;
+                } else {
+                    moveKobold(`kobold_${this.id}`, this.workLocation);
+                }
+            } else {
+                //gather coins for trading
+                let coinPurse = playerStatus.getCoinPurse();
+                let coinKeys = Object.keys(coinPurse).reverse();
+                let hasCoinFlag = false;
+                //start from most expensive coin and work your way down
+                for (const coinTypes of coinKeys) {
+                    if (coinPurse[coinTypes] >= 20 && this.coinCapacity >= 20 && hasCoinFlag === false && coinTypes !== 'totalValue') {
+                        if (this.coinCapacity > coinPurse[coinTypes]) {
+                            this.totalCoin[coinTypes] += coinPurse[coinTypes];
+                            coinPurse[coinTypes] = 0;
+                        } else {
+                            this.totalCoin[coinTypes] = this.coinCapacity;
+                            coinPurse[coinTypes] -= this.coinCapacity;
+                        }
+                        this.koboldYip('take', this.totalCoin, 'coin-gem-block');
+                        this.koboldYip('coin', this.totalCoin, `kobold_${this.id}`);
+                        moveKobold(`kobold_${this.id}`, this.workLocation);
+                        hasCoinFlag = true;
+                    }
+                }
+
+                if (!hasCoinFlag) {
+                    //we failed to gather coins, so lets stop trading and go back to rest.
+                    this.isStillTrading = false;
+                    this.isTrading = false;
+                    this.workLocation = `kobold-rest-block`;
+                    this.koboldYip('error', 'no_coins', `kobold_${this.id}`);
+                    moveKobold(`kobold_${this.id}`, `kobold-rest-block`);
+                }
+
+            }
+        },
+
+        koboldCookAndEat: function () {
+            //cook food here!  Let's make sure they are here for work.
+            let foodMade = 0;
+            if (this.workLocation == 'kobold-cook-block') {
+                foodMade += 5 + this.skills.generalSkills.bonus + Math.floor(this.skills.generalSkills.level * BASE_GENERAL_MULTIPLIER);
+                playerStatus.koboldFood += foodMade;
+                //koboldGenXPTotal += 5;
+            }
+
+            //Lets eat!
+            let foodChange = Math.floor((this.skills.generalSkills.level * BASE_LEVEL_POWER_MULTIPLIER) + 2);
+            if (playerStatus.koboldFood < foodChange) { //Oh no, not enough food!  Make a little food.
+                foodMade += (this.skills.generalSkills.level + this.skills.generalSkills.bonus); //lower bonus since not working here
+                playerStatus.koboldFood += foodMade;
+                this.koboldYip('food', foodMade, `kobold-cook-food-count`);
+            } else {
+                if (Math.floor(this.skills.generalSkills.level * BASE_LEVEL_POWER_MULTIPLIER) + this.currentHunger >= this.maxHunger) {
+                    playerStatus.koboldFood -= (this.maxHunger - this.currentHunger);
+                    this.koboldYip('food', (this.maxHunger - this.currentHunger), `kobold_${this.id}`);
+                    this.koboldYip('food', ((this.maxHunger - this.currentHunger) * -1), `kobold-cook-block`);
+                    this.koboldYip('food', foodMade, `kobold-cook-food-count`);
+                    this.currentHunger = this.maxHunger;
+                    if (this.workLocation !== 'kobold-cook-block') {
+                        moveKobold(`kobold_${this.id}`, this.workLocation);
+                    }
+                } else {
+                    this.currentHunger += foodChange;
+                    this.koboldYip('food', foodChange, `kobold_${this.id}`);
+                    playerStatus.koboldFood -= foodChange;
+                    this.koboldYip('food-eat', (foodChange * -1), `kobold-cook-block`);
+                    this.koboldYip('food', foodMade, `kobold-cook-food-count`);
+                }
+                document.getElementById(`kobold_${this.id}`).children[4].children[0].style.width = Math.floor((this.currentHunger / this.maxHunger) * 100) + "%";  
+            }
+        },
+
+        koboldRest: function () {
+            //sleepy times, sleep to recover energy, any kobold out of energy
+            //will immediately be placed here
+            let energyRecover = Math.floor(Math.random() * ((3 + kobold.skills.generalSkills.bonus) * BASE_LEVEL_POWER_MULTIPLIER));
+            this.currentEnergy += energyRecover;
+            //Full on energy?  back to work!
+            if (this.currentEnergy >= this.maxEnergy) {
+                this.currentEnergy = this.maxEnergy;
+                if (this.workLocation !== 'kobold-rest-block') {
+                    moveKobold(`kobold_${this.id}`, this.workLocation);
+                }
+            }
+
+            if (this.currentEnergy !== this.maxEnergy) {
+                this.koboldYip('energy', energyRecover, `kobold_${this.id}`)
+            }
+            document.getElementById(`kobold_${this.id}`).children[3].children[0].style.width = Math.floor((this.currentEnergy / this.maxEnergy) * 100) + "%";
+        },
+
+        koboldSmithItem: function () {
+            //Time to build a weapon/armor/item!
+            let koboldBuild = Math.floor((this.skills.craftingSkills.level + this.skills.craftingSkills.bonus + this.skills.craftingSkills.smithBonus) * BASE_LEVEL_POWER_MULTIPLIER);
+            let koboldBuildMin = this.skills.craftingSkills.level + this.skills.craftingSkills.bonus + 5;
+            let koboldBuildMax = this.skills.craftingSkills.level + this.skills.generalSkills.level + this.skills.generalSkills.bonus + this.skills.craftingSkills.bonus + this.skills.craftingSkills.smithBonus;
+            this.giveXP('crafting', koboldBuild);
+            this.koboldYip('craft', koboldBuild, `kobold_${this.id}`);
+            this.skills.craftingSkills.smithing.currentProgress += koboldBuild;
+            let itemOffsetX = 0;
+            let itemOffsetY = 0;
+            let throwAwayflag = false;
+            let weaponArray = [];
+            let armorArray = [];
+            if (this.skills.craftingSkills.smithing.currentProgress >= this.skills.craftingSkills.smithing.maxProgress) {
+                let koboldItemTypeCheck = Math.floor(Math.random() * 3);
+                let itemType = koboldItemTypeCheck;
+                let itemName = "";
+                switch (koboldItemTypeCheck) {
+                    case 0:
+                        if (playerStatus.weaponRack.length >= 15) {
+                            throwAwayflag = true;
+                        }
+                        itemType = "sword";
+                        weaponArray = weaponList[Math.floor(Math.random() * weaponList.length)]
+                        itemOffsetX = EQUIPMENT_PIXEL_WIDTH_HEIGHT * Math.floor(Math.random() * 5);
+                        switch (weaponArray.subtype) {
+                            case 'sword':
+                                itemOffsetY = 0;
+                                break;
+                            case 'knife':
+                                itemOffsetY = EQUIPMENT_PIXEL_WIDTH_HEIGHT * 1;
+                                break;
+                            case 'polearm':
+                                itemOffsetY = EQUIPMENT_PIXEL_WIDTH_HEIGHT * 2;
+                                break;
+                            case 'bow':
+                                itemOffsetY = EQUIPMENT_PIXEL_WIDTH_HEIGHT * 3;
+                                break;
+                            case 'club':
+                                itemOffsetY = EQUIPMENT_PIXEL_WIDTH_HEIGHT * 4;
+                                break;
+                            default:
+                                itemOffsetY = 0;
+                        }
+                        //itemOffsetY = 512 * Math.floor(Math.random * 5);
+                        this.skills.craftingSkills.smithing.weaponsMade++;
+                        itemName = weaponArray.name;
+                        break;
+                    case 1:
+                    case 2:
+                        if (playerStatus.armorRack.length >= 15) {
+                            throwAwayflag = true;
+                        }
+                        itemType = 'armor';
+                        armorArray = armorList[Math.floor(Math.random() * armorList.length)];
+                        itemOffsetX = EQUIPMENT_PIXEL_WIDTH_HEIGHT * Math.floor(Math.random() * 5);
+                        switch (armorArray.subtype) {
+                            case 'armor':
+                                itemOffsetY = EQUIPMENT_PIXEL_WIDTH_HEIGHT * 5;
+                                break;
+                            case 'shield':
+                                itemOffsetX = EQUIPMENT_PIXEL_WIDTH_HEIGHT * Math.floor(Math.random() * 3);
+                                itemOffsetY = EQUIPMENT_PIXEL_WIDTH_HEIGHT * 6;
+                        }
+
+                        this.skills.craftingSkills.smithing.armorMade++;
+                        itemName = armorArray.name;
+                        break;
+                    default:
+                }
+                let itemDurabilty = Math.floor(Math.random() * (koboldBuildMax - koboldBuildMin + 1) + koboldBuildMin);
+
+                //generate a prefix and suffix if skill is high enough
+                //see if we gem it as well
+                if (Math.random() * (this.skills.craftingSkills.level + this.skills.generalSkills.level) > 10) {
+                    itemName = `${prefixList[Math.floor(Math.random() * prefixList.length)]} ${itemName}`;
+                    itemDurabilty += Math.floor(Math.random() * (this.skills.craftingSkills.level + this.skills.craftingSkills.bonus));
+                };
+                if (Math.random() * (this.skills.craftingSkills.level + this.skills.generalSkills.level) > 20) {
+                    let suffixName = suffixList[Math.floor(Math.random() * suffixList.length)];
+                    itemDurabilty += Math.floor(Math.random() * (this.skills.craftingSkills.level + this.skills.craftingSkills.bonus + this.skills.craftingSkills.smithBonus));
+                    if (suffixName.charAt(0) == `'`) {
+                        itemName = `${itemName}${suffixName}`;
+                    } else {
+                        itemName = `${itemName} ${suffixName}`;
+                    }
+                };
+
+                let gemsHeld = Object.values(playerStatus.gemPurse).reduce((acc, val) => acc + val);
+                if ((Math.random() * (this.skills.craftingSkills.level + this.skills.craftingSkills.bonus) > 90) && gemsHeld > 0) {
+                    let gem = returnRandomGem();
+                    playerStatus.gemPurse[gem] -= 1;
+                    itemName = `<i class="fas color-${gem} fa-gem"></i> ${itemName} <i class="fas color-${gem} fa-gem"></i>`;
+                    itemDurabilty += (this.skills.generalSkills.bonus + this.skills.craftingSkills.bonus) * 2;
+                    this.koboldYip('gem_equip', gem, this.id);
+                };
+
+                this.skills.craftingSkills.smithing.currentProgress = 0;
+
+                if (itemType === "sword") {
+                    if (throwAwayflag) {
+                        this.koboldYip('error', 'too_many_weapons', this.id)
+                    } else {
+                        playerStatus.weaponRack.push(createItem(weaponArray.type, weaponArray.subtype, itemDurabilty, itemName, itemOffsetX, itemOffsetY));
+
+                        displayRacks();
+                    }
+                };
+
+                if (itemType === "armor") {
+                    if (throwAwayflag) {
+                        this.koboldYip('error', 'too_many_armors', this.id)
+                    } else {
+                        playerStatus.armorRack.push(createItem(armorArray.type, armorArray.subtype, itemDurabilty, itemName, itemOffsetX, itemOffsetY));
+
+                        displayRacks();
+                    }
+                };
+
+                //playerStatus.itemList.push(createItem(itemType, itemDurabilty, itemName));
+
+                this.koboldYip('item', itemType, 'kobold-camp-block');
+            }
+        },
+
+        koboldCheckEquip: function () {
+            if (isEmpty(this.equipWeapon) || isEmpty(this.equipArmor)) {
+                let returnToCamp = false;
+
+                if (isEmpty(this.equipArmor)) {
+                    let armorPickUp = playerStatus.armorRack.length - 1;
+                    if (armorPickUp < 0) {
+                        this.koboldYip('error', 'no_equip', this.id);
+                        returnToCamp = true;
+                    } else {
+                        this.equipArmor = playerStatus.armorRack[armorPickUp];
+                        playerStatus.armorRack.splice(armorPickUp, 1);
+                        displayRacks();
+                    }
+                }
+                if (isEmpty(this.equipWeapon)) {
+                    let weaponPickUp = playerStatus.weaponRack.length - 1;
+                    if (weaponPickUp < 0) {
+                        this.koboldYip('error', 'no_equip', this.id);
+                        returnToCamp = true;
+                    } else {
+                        this.equipWeapon = playerStatus.weaponRack[weaponPickUp];
+                        playerStatus.weaponRack.splice(weaponPickUp, 1);
+                        displayRacks();
+                    }
+
+                }
+
+                if (returnToCamp) {
+                    this.workLocation = 'kobold-rest-block';
+                    moveKobold(`kobold_${this.id}`, 'kobold-rest-block');
+                }
+            } else { //We're equipped, lets go to the adventure!
+                moveKobold(`kobold_${this.id}`, 'kobold-adventure-block-kobolds');
+            }
+        },
+
+        koboldAdventureTime: function () {
+            let checkKoboldAdv = document.getElementById('kobold-adventure-block-kobolds').querySelectorAll('.kobold-unit');
+            let tankKobold = checkKoboldAdv[checkKoboldAdv.length - 1];
+            let checkMonsters = document.getElementById('kobold-adventure-block-monsters').querySelectorAll('.monster-unit');
+            let koboldAdvXP = 0;
+            //check for a monster
+            //if there is none, generate one!
+            if (checkMonsters.length == 0) {
+                let newMonster = createMonster(playerStatus.monsterList.length);
+                playerStatus.monsterList.push(newMonster);
+                displayMonster(playerStatus.monsterList[0]);
+                checkMonsters = document.getElementById('kobold-adventure-block-monsters').querySelectorAll('.monster-unit');
+            }
+
+            let monsterArrayEnd = checkMonsters.length - 1;
+            //attack the monster
+            //We check death here before monster attacks to allow kobold to not take a hit
+            playerStatus.monsterList[monsterArrayEnd].takeDamage(1 + this.skills.adventureSkills.damage);
+            this.koboldYip('damage', 1 + this.skills.adventureSkills.damage, `monster_${playerStatus.monsterList[monsterArrayEnd].id}`);
+            if (playerStatus.monsterList[monsterArrayEnd].checkDeath()) {
+                //give loot and delete the monster!
+                let gemMessage = playerStatus.giveGem();
+                document.getElementById(`monster_${monsterArrayEnd}`).remove();
+                playerStatus.monsterList.splice(checkMonsters.length - 1, 1);
+                this.koboldYip('gem', gemMessage, `kobold_${this.id}`)
+                checkMonsters = document.getElementById('kobold-adventure-block-monsters').querySelectorAll('.monster-unit');
+                koboldAdvXP += (this.skills.adventureSkills.level + this.skills.generalSkills.bonus + this.skills.generalSkills.level);
+            }
+
+            //subtract weapon dur
+            this.reduceDur('weapon');
+
+            //monster attacks! (if they are alive)
+            let tankID = tankKobold.id.match(/\d+/) - 1;
+            if (checkMonsters.length > 0) {
+                if (playerStatus.monsterList[monsterArrayEnd].checkMonsterAttack()) {
+                    playerStatus.koboldList[tankID].reduceDur('armor');
+                }
+                koboldAdvXP += playerStatus.monsterList[monsterArrayEnd].attack;
+            }
+
+            //check for equipment break
+            if (this.checkEquipment()) {
+                moveKobold(`kobold_${this.id}`, 'kobold-equip-area');
+                koboldAdvXP += (this.skills.adventureSkills.level + this.skills.generalSkills.bonus);
+            }
+
+            this.giveXP('adventuring', koboldAdvXP);
+        },
 
         koboldYip: function (type, num, id) {
             //pre-check - is the id a number?  if it is, lets convert it to access the DOM

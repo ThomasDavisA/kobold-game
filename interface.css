@@ -296,6 +296,7 @@ body {
 
 .bar-container {
     height: 5px;
+    border: 1px solid rgb(94, 94, 94);
     border-radius: 5px;
     width: 100%;
     background-color: grey;
@@ -311,6 +312,11 @@ body {
     
     height: 5px;
     background-color: brown;
+}
+
+.speed-bar {
+    height: 5px;
+    background-color: lightgray;
 }
 
 .health-bar {
