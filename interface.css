@@ -68,6 +68,10 @@ body {
     transition: top ease-out 0.5s;
 }
 
+.gemmed {
+    display: inline;
+}
+
 #kobold-cook-food-count {
     float: right;
     color: green;
@@ -533,6 +537,7 @@ canvas {
     animation-name: text-float;
     position: absolute;
     text-align: center;
+    width: 600px;
 }
 
 

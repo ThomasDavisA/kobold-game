@@ -381,7 +381,7 @@ function displayMonster(monster) {
     monsterSpeedBar.classList.add("speed-bar");
     monsterHealthBarContainer.append(monsterHealthBar);
     monsterSpeedBarContainer.append(monsterSpeedBar);
-    
+
     monsterDiv.id = `monster_${monster.id}`;
     monsterDiv.append(monsterCanvas);
     monsterDiv.append(monsterDivName);

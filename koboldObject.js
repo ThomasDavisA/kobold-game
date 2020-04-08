@@ -94,7 +94,8 @@ function createKobold(id) {
             adventureSkills: {
                 level: 1,
                 exp: 0,
-                damage: 0,
+                damage: 1,
+                bonus: 0,
                 durabiltyProcChance: 0,
                 dodgeChance: 0,
                 nextLevel: BASE_SUB_EXP_LEVEL,
@@ -121,6 +122,7 @@ function createKobold(id) {
             if (this.currentTick >= this.koboldTickSpeed) {
 
                 this.currentTick = 0;
+                this.giveXP('general', 1);
                 this.koboldCheckLocation();
             }
             document.getElementById(`kobold_${this.id}`).children[2].children[0].style.width = Math.floor((this.currentTick / this.koboldTickSpeed) * 100) + "%";
@@ -323,24 +325,30 @@ function createKobold(id) {
             //cook food here!  Let's make sure they are here for work.
             let foodMade = 0;
             if (this.workLocation == 'kobold-cook-block') {
-                foodMade += 5 + this.skills.generalSkills.bonus + Math.floor(this.skills.generalSkills.level * BASE_GENERAL_MULTIPLIER);
+                foodMade += Math.floor(this.skills.generalSkills.bonus + (Math.random() * (this.skills.generalSkills.level * BASE_GENERAL_MULTIPLIER)) / 2) + 1;
                 playerStatus.koboldFood += foodMade;
-                //koboldGenXPTotal += 5;
+                this.giveXP('general', foodMade);
+                this.koboldYip('food', foodMade, `kobold-cook-food-count`);
             }
 
             //Lets eat!
             let foodChange = Math.floor((this.skills.generalSkills.level * BASE_LEVEL_POWER_MULTIPLIER) + 2);
+            let stomachDiff = this.maxHunger - this.currentHunger;
             if (playerStatus.koboldFood < foodChange) { //Oh no, not enough food!  Make a little food.
-                foodMade += (this.skills.generalSkills.level + this.skills.generalSkills.bonus); //lower bonus since not working here
+                foodMade += (this.skills.generalSkills.level); //lower bonus since not working here
                 playerStatus.koboldFood += foodMade;
-                this.koboldYip('food', foodMade, `kobold-cook-food-count`);
-            } else {
-                if (Math.floor(this.skills.generalSkills.level * BASE_LEVEL_POWER_MULTIPLIER) + this.currentHunger >= this.maxHunger) {
-                    playerStatus.koboldFood -= (this.maxHunger - this.currentHunger);
-                    this.koboldYip('food', (this.maxHunger - this.currentHunger), `kobold_${this.id}`);
-                    this.koboldYip('food', ((this.maxHunger - this.currentHunger) * -1), `kobold-cook-block`);
+                if (foodMade > 0) {
                     this.koboldYip('food', foodMade, `kobold-cook-food-count`);
-                    this.currentHunger = this.maxHunger;
+                }
+            } else {
+                if (foodChange > stomachDiff) {
+                    if (stomachDiff > 0) {
+                        playerStatus.koboldFood -= stomachDiff;
+                        this.koboldYip('food', (stomachDiff), `kobold_${this.id}`);
+                        this.koboldYip('food', ((stomachDiff) * -1), `kobold-cook-block`);
+                        this.currentHunger = this.maxHunger;
+                    }
+
                     if (this.workLocation !== 'kobold-cook-block') {
                         moveKobold(`kobold_${this.id}`, this.workLocation);
                     }
@@ -349,7 +357,6 @@ function createKobold(id) {
                     this.koboldYip('food', foodChange, `kobold_${this.id}`);
                     playerStatus.koboldFood -= foodChange;
                     this.koboldYip('food-eat', (foodChange * -1), `kobold-cook-block`);
-                    this.koboldYip('food', foodMade, `kobold-cook-food-count`);
                 }
                 document.getElementById(`kobold_${this.id}`).children[4].children[0].style.width = Math.floor((this.currentHunger / this.maxHunger) * 100) + "%";
             }
@@ -376,7 +383,7 @@ function createKobold(id) {
 
         koboldSmithItem: function () {
             //Time to build a weapon/armor/item!
-            let koboldBuild = Math.floor((this.skills.craftingSkills.level + this.skills.craftingSkills.bonus + this.skills.craftingSkills.smithBonus) * BASE_LEVEL_POWER_MULTIPLIER);
+            let koboldBuild = Math.floor((Math.random() * (this.skills.craftingSkills.level + this.skills.craftingSkills.bonus) + this.skills.craftingSkills.smithBonus) * BASE_LEVEL_POWER_MULTIPLIER);
             let koboldBuildMin = this.skills.craftingSkills.level + this.skills.craftingSkills.bonus + 5;
             let koboldBuildMax = this.skills.craftingSkills.level + this.skills.generalSkills.level + this.skills.generalSkills.bonus + this.skills.craftingSkills.bonus + this.skills.craftingSkills.smithBonus;
             this.giveXP('crafting', koboldBuild);
@@ -462,14 +469,20 @@ function createKobold(id) {
                     }
                 };
 
-                let gemsHeld = Object.values(playerStatus.gemPurse).reduce((acc, val) => acc + val);
-                if ((Math.random() * (this.skills.craftingSkills.level + this.skills.craftingSkills.bonus) > 90) && gemsHeld > 0) {
-                    let gem = returnRandomGem();
-                    playerStatus.gemPurse[gem] -= 1;
-                    itemName = `<i class="fas color-${gem} fa-gem"></i> ${itemName} <i class="fas color-${gem} fa-gem"></i>`;
-                    itemDurabilty += (this.skills.generalSkills.bonus + this.skills.craftingSkills.bonus) * 2;
-                    this.koboldYip('gem_equip', gem, this.id);
+                if (!throwAwayflag) {
+                    let gemsHeld = Object.values(playerStatus.gemPurse).reduce((acc, val) => acc + val);
+                    if (gemsHeld > 0) {
+                        if ((Math.random() * (this.skills.craftingSkills.level + this.skills.craftingSkills.bonus) > 90) && gemsHeld > 0) {
+                            let gem = returnRandomGem();
+                            playerStatus.gemPurse[gem] -= 1;
+                            itemName = `<p><i class="fas color-${gem} fa-gem gemmed"></i> ${itemName} <i class="fas color-${gem} fa-gem gemmed"></i></p>`;
+                            itemDurabilty += (this.skills.generalSkills.bonus + this.skills.craftingSkills.bonus) * 2;
+                            this.koboldYip('gem_equip', gem, this.id);
+                        };
+                    };
+
                 };
+
 
                 this.skills.craftingSkills.smithing.currentProgress = 0;
 
@@ -487,7 +500,7 @@ function createKobold(id) {
                     if (throwAwayflag) {
                         this.koboldYip('error', 'too_many_armors', this.id)
                     } else {
-                        playerStatus.armorRack.push(createItem(armorArray.type, armorArray.subtype, 1, itemName, itemOffsetX, itemOffsetY));
+                        playerStatus.armorRack.push(createItem(armorArray.type, armorArray.subtype, itemDurabilty, itemName, itemOffsetX, itemOffsetY));
 
                         displayRacks();
                     }
@@ -537,8 +550,6 @@ function createKobold(id) {
         },
 
         koboldAdventureTime: function () {
-            let checkKoboldAdv = document.getElementById('kobold-adventure-block-kobolds').querySelectorAll('.kobold-unit');
-            let tankKobold = checkKoboldAdv[checkKoboldAdv.length - 1];
             let checkMonsters = document.getElementById('kobold-adventure-block-monsters').querySelectorAll('.monster-unit');
             let koboldAdvXP = 0;
             //check for a monster
@@ -557,8 +568,11 @@ function createKobold(id) {
 
             let monsterArrayEnd = checkMonsters.length - 1;
             //attack the monster
-            playerStatus.monsterList[monsterArrayEnd].takeDamage(1 + this.skills.adventureSkills.damage);
-            this.koboldYip('damage', 1 + this.skills.adventureSkills.damage, `monster_${playerStatus.monsterList[monsterArrayEnd].id}`);
+            //formula is (random (damage + level)) + (bonus + 1)  <- max, to min
+            let koboldAttack = Math.floor((Math.random() * (this.skills.adventureSkills.damage + this.skills.adventureSkills.level)) + this.skills.adventureSkills.bonus + 1)
+            playerStatus.monsterList[monsterArrayEnd].takeDamage(koboldAttack);
+            this.koboldYip('damage', koboldAttack, `monster_${playerStatus.monsterList[monsterArrayEnd].id}`);
+            koboldAdvXP += koboldAttack;
             if (playerStatus.monsterList[monsterArrayEnd].checkDeath()) {
                 //give loot and delete the monster!
                 let gemMessage = playerStatus.giveGem();
@@ -570,7 +584,7 @@ function createKobold(id) {
             }
 
             //subtract weapon dur
-            this.reduceDur('weapon');
+            this.reduceDur('weapon', koboldAttack);
 
             //check for equipment break
             this.checkEquipment();
@@ -752,12 +766,15 @@ function createKobold(id) {
         },
 
         reduceDur: function (type, num) {
+            if (num <= 0) {
+                num = 1;
+            }
             switch (type) {
                 case 'weapon':
-                    this.equipWeapon.durabilty--;
+                    this.equipWeapon.durabilty -= num;
                     break;
                 case 'armor':
-                    this.equipArmor.durabilty--;
+                    this.equipArmor.durabilty -= num;
                     break;
             }
         },
@@ -858,10 +875,12 @@ function createKobold(id) {
                     if (category !== 'generalSkills') { //Is this general level or not?
                         this.maxEnergy += 2;
                         this.maxHunger += 2;
+                        this.coinCapacity += 2;
+                        this.koboldTickSpeed -= 1;
                         this.skills[category].nextLevel = Math.floor(BASE_SUB_MULTIPLIER * (this.skills[category].level ** BASE_SUB_MULTIPLIER) + BASE_SUB_EXP_LEVEL);
 
                     } else {
-                        this.skills[category].bonus += 3;
+                        this.skills[category].bonus += 2;
                         this.maxEnergy += 1;
                         this.maxHunger += 1;
                         this.skills[category].nextLevel = Math.floor(BASE_GENERAL_MULTIPLIER * (this.skills[category].level ** BASE_GENERAL_MULTIPLIER) + BASE_GENERAL_EXP_LEVEL);
