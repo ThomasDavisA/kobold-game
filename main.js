@@ -15,13 +15,13 @@ const PIXEL_HEIGHT = 32;
 const EQUIPMENT_PIXEL_WIDTH_HEIGHT = 512;
 const PIXEL_OFFSET_X = 16;
 const GENERIC_TYPES = 3;
-const REST_TICK_MULTIPLIER = 5;
+const REST_TICK_MULTIPLIER = 12;
 const COOK_TICK_MULTIPLIER = 4;
-const TRADE_TICK_MULTIPLIER = 2;
+const TRADE_TICK_MULTIPLIER = 3;
 const HOARD_TICK_MULTIPLIER = 10;
 const CRAFT_TICK_MULTIPLIER = 2;
-const CAMP_TICK_MULTIPLIER = 6;
-const DUNGEON_TICK_MULTIPLIER = 8;
+const CAMP_TICK_MULTIPLIER = 8;
+const DUNGEON_TICK_MULTIPLIER = 10;
 
 //const references?
 const COLOR_WOODNICKEL = 'color-wood';
@@ -234,7 +234,7 @@ function createMonster(idNum) {
         id: idNum,
         hasActed: false,
         currentTick: 0,
-        totalTick: 1000,
+        totalTick: 200,
         spriteID: 0,
         currentHP: 5,
         maxHP: 5,

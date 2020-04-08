@@ -30,11 +30,11 @@ function createKobold(id) {
         currentEnergy: 500,
         maxEnergy: 500,
         energyCurrentTick: 0,
-        energyTickSpeed: 1000,
+        energyTickSpeed: 400,
         currentHunger: 100,
         maxHunger: 100,
         hungercurrentTick: 0,
-        hungerTickSpeed: 500,
+        hungerTickSpeed: 200,
         currentTick: 0,
         koboldTickSpeed: 2000,
         tickMultiplier: 3,
@@ -874,7 +874,9 @@ function createKobold(id) {
                     }
                     if (category !== 'generalSkills') { //Is this general level or not?
                         this.maxEnergy += 2;
+                        this.currentEnergy += 2;
                         this.maxHunger += 2;
+                        this.currentHunger += 2;
                         this.coinCapacity += 2;
                         this.koboldTickSpeed -= 1;
                         this.skills[category].nextLevel = Math.floor(BASE_SUB_MULTIPLIER * (this.skills[category].level ** BASE_SUB_MULTIPLIER) + BASE_SUB_EXP_LEVEL);
@@ -882,7 +884,9 @@ function createKobold(id) {
                     } else {
                         this.skills[category].bonus += 2;
                         this.maxEnergy += 1;
+                        this.currentEnergy +=1
                         this.maxHunger += 1;
+                        this.currentHunger += 1;
                         this.skills[category].nextLevel = Math.floor(BASE_GENERAL_MULTIPLIER * (this.skills[category].level ** BASE_GENERAL_MULTIPLIER) + BASE_GENERAL_EXP_LEVEL);
 
                     }
