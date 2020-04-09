@@ -218,7 +218,7 @@ function createKobold(id) {
                 this.koboldYip("coin", koboldCoinCreate, `kobold_${this.id}`);
                 this.totalCoin[coinQuality] += koboldCoinCreate;
             }
-            this.giveXP('crafting', Math.floor(koboldCoinCreate + (koboldCoinCreate * qualityLevel) / BASE_CONVERSION_FACTOR) + 1);
+            this.giveXP('crafting', Math.floor(koboldCoinCreate / BASE_CONVERSION_FACTOR) + qualityLevel + 1);
         },
 
         koboldTradeCoins: function () {
@@ -573,7 +573,20 @@ function createKobold(id) {
                 //generate a random amount of monsters
                 let numMonster = Math.floor(Math.random() * 4) + 1;
                 for (let i = 0; i < numMonster; i++) {
-                    let newMonster = createMonster(playerStatus.monsterList.length);
+                    let monsterPower = Math.floor(Math.random() * playerStatus.upgradeCount.adventure);
+                    let newMonster = '';
+                    switch (monsterPower) {
+                        case 0:
+                            newMonster = createMonster(playerStatus.monsterList.length, 'Slime', 20, 3, 1);
+                            break;
+                        case 1:
+                            newMonster = createMonster(playerStatus.monsterList.length, 'Blue Slime', 80, 15, 2);
+                            break;
+                            case 2:
+                            newMonster = createMonster(playerStatus.monsterList.length, 'Red Slime', 400, 40, 4);
+                            break;
+                    }
+                    
                     playerStatus.monsterList.push(newMonster);
                     displayMonster(playerStatus.monsterList[i]);
                 }
@@ -590,7 +603,13 @@ function createKobold(id) {
             koboldAdvXP += koboldAttack;
             if (playerStatus.monsterList[monsterArrayEnd].checkDeath()) {
                 //give loot and delete the monster!
-                let gemMessage = playerStatus.giveGem();
+                let gemMessage = '';
+                for (let i = 0; i < playerStatus.monsterList[monsterArrayEnd].treasureCount; i++) {
+                    let gem = playerStatus.giveGem();   
+                    gemMessage = `${gemMessage} <i class="fas color-${gem} fa-gem"></i>`;
+                }
+                
+                gemMessage = `Looted ${gemMessage}!`;
                 document.getElementById(`monster_${monsterArrayEnd}`).remove();
                 playerStatus.monsterList.splice(checkMonsters.length - 1, 1);
                 this.koboldYip('gem', gemMessage, `kobold_${this.id}`)

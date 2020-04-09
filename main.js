@@ -264,17 +264,18 @@ function createItem(type = "weapon", sub = "sword", dur = 0, name = "", offsetX 
 }
 
 //monster factory
-function createMonster(idNum) {
+function createMonster(idNum, name, hp, attack, loot) {
     return {
-        name: "slime",
+        name: name,
         id: idNum,
         hasActed: false,
         currentTick: 0,
         totalTick: 200,
         spriteID: 0,
-        currentHP: 5,
-        maxHP: 5,
-        attack: 5,
+        currentHP: hp,
+        maxHP: hp,
+        attack: attack,
+        treasureCount: loot,
 
         getAttack: function () {
             return this.attack;
