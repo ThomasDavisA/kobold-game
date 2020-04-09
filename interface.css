@@ -272,7 +272,7 @@ body {
     margin: 0 10px;
     background: none;
     height: 100%;
-    transition: ease-out .2s;
+    transition: ease-out .1s;
 }
 
 .action-button:hover {
@@ -288,6 +288,10 @@ body {
     display: flex;
     justify-content: space-around;
     width: 50%;
+}
+
+#coin-gem-block {
+    height: 30%;
 }
 
 .coin-list {
@@ -634,10 +638,6 @@ canvas {
     padding: 0;
 }
 
-.kobold-unit {
-    transition: .1s ease;
-}
-
 .kobold-unit:active{
     background: radial-gradient(circle at center 45px, rgba(96,88,247,1), transparent 30%);
 }
@@ -655,7 +655,11 @@ canvas {
     text-align: center;
 }
 
-.kobold-unit:hover {
+.kobold-unit > canvas {
+    transition: .1s ease;
+}
+
+.kobold-unit:hover > canvas {
     transform: translate(0, -10%);
 }
 

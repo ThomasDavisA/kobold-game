@@ -119,6 +119,9 @@ function createKobold(id) {
                 return;
             }
             this.currentTick += 1 * this.tickMultiplier;
+            if (this.presentLocation === 'kobold-cook-block' && this.currentHunger < this.maxHunger) {
+                this.currentTick += 1 * 20;
+            }
             if (this.currentTick >= this.koboldTickSpeed) {
 
                 this.currentTick = 0;
@@ -347,6 +350,10 @@ function createKobold(id) {
                         this.koboldYip('food', (stomachDiff), `kobold_${this.id}`);
                         this.koboldYip('food', ((stomachDiff) * -1), `kobold-cook-block`);
                         this.currentHunger = this.maxHunger;
+                    }
+
+                    if (this.workLocation === '') {
+                        this.workLocation = 'kobold-cook-block';
                     }
 
                     if (this.workLocation !== 'kobold-cook-block') {

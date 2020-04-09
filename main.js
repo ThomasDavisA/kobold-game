@@ -34,18 +34,13 @@ let clickBase = 1;
 let koboldID = 0;
 let inspectTimer = 0;
 
-//Using a global event listener to determine what the click will do
-document.getElementById("game-block").addEventListener("click", checkClick);
-
-//add more event listeners
-document.getElementById("smith-upgrade").addEventListener("click", upgradeCheck('smith'));
-document.getElementById("coin-upgrade").addEventListener("click", upgradeCheck('coin'));
-document.getElementById("dungeon-upgrade").addEventListener("click", upgradeCheck('dungeon'));
-document.getElementById("trade-upgrade").addEventListener("click", upgradeCheck('trade'));
-
 //document.getElementById("kobold-rest-block").addEventListener("click", checkClick);
 //Starting init
 let playerStatus = playerInit();
+
+
+//Using a global event listener to determine what the click will do
+document.getElementById("game-block").addEventListener("click", checkClick);
 
 
 function coinClick() {
@@ -66,20 +61,58 @@ function coinClick() {
 
 function upgradeCheck(checkID) {
     //Check to see what we're doing, and then apply it!  Each upgrade only goes up to level 5.
-
+    let gemsHeld = Object.values(playerStatus.gemPurse).reduce((acc, val) => acc + val);
 
     switch (checkID) {
         case 'smith':
-
+            if (gemsHeld >= playerStatus.upgradeCost) {
+                playerStatus.upgradeCount.smith++;
+                for (let i = 0; i <= playerStatus.upgradeCost; i++) {
+                    let gem = returnRandomGem();
+                    playerStatus.gemPurse[gem] -= 1;
+                }
+                updateUpgradeCost();
+            }
             break;
         case 'coin':
+            if (gemsHeld >= playerStatus.upgradeCost) {
+                playerStatus.upgradeCount.coin++;
+                for (let i = 0; i <= playerStatus.upgradeCost; i++) {
+                    let gem = returnRandomGem();
+                    playerStatus.gemPurse[gem] -= 1;
+                }
+                updateUpgradeCost();
+            }
             break;
         case 'dungeon':
+            if (gemsHeld >= playerStatus.upgradeCost) {
+                playerStatus.upgradeCount.adventure++;
+                for (let i = 0; i <= playerStatus.upgradeCost; i++) {
+                    let gem = returnRandomGem();
+                    playerStatus.gemPurse[gem] -= 1;
+                }
+                updateUpgradeCost();
+            }
             break;
         case 'trade':
+            if (gemsHeld >= playerStatus.upgradeCost) {
+                playerStatus.upgradeCount.trade++;
+                for (let i = 0; i <= playerStatus.upgradeCost; i++) {
+                    let gem = returnRandomGem();
+                    playerStatus.gemPurse[gem] -= 1;
+                }
+                updateUpgradeCost();
+            }
             break;
     }
 }
+
+function updateUpgradeCost() {
+    playerStatus.upgradeCost = Math.floor(playerStatus.upgradeCount.smith + playerStatus.upgradeCount.trade + playerStatus.upgradeCount.coin + playerStatus.upgradeCount.adventure + 1) * 40;
+    let upgradeText = document.getElementById('upgrade-cost');
+    upgradeText.innerHTML = `Upgrade Cost: ${playerStatus.upgradeCost} Gems`;
+}
+
 
 //Player factory
 function playerInit() {
@@ -110,16 +143,17 @@ function playerInit() {
             Beryl: 10,
             Citrine: 10,
             Emerald: 10,
-            Garnet: 10,
-            Jade: 10,
-            Onyx: 10,
-            Ruby: 10,
-            Sapphire: 10,
-            Spinel: 10,
-            Topaz: 10,
-            Tanzanite: 10,
-            Tourmaline: 10
+            Garnet: 1,
+            Jade: 1,
+            Onyx: 1,
+            Ruby: 1,
+            Sapphire: 0,
+            Spinel: 1,
+            Topaz: 1,
+            Tanzanite: 0,
+            Tourmaline: 2
         },
+        upgradeCost: 40,
         upgradeCount: {
             smith: 0,
             coin: 0,
@@ -672,6 +706,18 @@ function checkClick(event) {
         case 'player-dragon':
             dragonSnooze();
             break;
+        case 'smith-upgrade':
+            upgradeCheck('smith');
+            break;
+        case 'coin-upgrade':
+            upgradeCheck('coin');
+            break;
+        case 'dungeon-upgrade':
+            upgradeCheck('dungeon');
+            break;
+        case 'trade-upgrade':
+            upgradeCheck('trade');
+            break;
         case 'outside-block':
         case 'kobold-rest-block':
         case 'kobold-coin-block':
@@ -816,7 +862,7 @@ function returnRandomGem() {
     }
     let selectedGem = Math.floor(Math.random() * gemsNotZero.length);
 
-    return gemList[selectedGem];
+    return gemsNotZero[selectedGem];
 }
 
 window.setInterval(function () {
