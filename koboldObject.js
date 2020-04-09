@@ -50,7 +50,7 @@ function createKobold(id) {
             goldCoin: 0,
             platinumCoin: 0
         },
-        coinCapacity: 20,
+        coinCapacity: 30,
 
         //Skill of the kobold
         skills: {
@@ -183,7 +183,7 @@ function createKobold(id) {
         },
 
         koboldCraftCoins: function () {
-            let qualityLevel = 0;
+            let qualityLevel = playerStatus.upgradeCount.coin;
             let coinList = Object.keys(playerStatus.coinPurse);
             let gemsHeld = Object.values(playerStatus.gemPurse).reduce((acc, val) => acc + val);
 
@@ -224,10 +224,9 @@ function createKobold(id) {
         koboldTradeCoins: function () {
             //kobold to trade coins out for higher value ones at a cost
             //currently 100% efficient, but will include cost variable later
-            const TRADE_FACTOR = 1.2;
             let coinsHeld = Object.values(this.totalCoin).reduce((acc, val) => acc + val);
             //Lets make sure they even have coins, and if they don't, run back to the hoard to get some!
-            if (this.isTrading === false && coinsHeld < (10 * TRADE_FACTOR)) {
+            if (this.isTrading === false && coinsHeld < (BASE_CONVERSION_FACTOR * TRADE_FACTOR)) {
                 if (this.coinCapacity < BASE_CONVERSION_FACTOR * TRADE_FACTOR) {
                     this.koboldYip('error', 'not_enough_cap', this.id)
                     this.workLocation = 'kobold-rest-block';
@@ -242,20 +241,28 @@ function createKobold(id) {
 
             }
 
-            if (this.isTrading === true || coinsHeld >= (10 * TRADE_FACTOR)) {
+            if (this.isTrading === true || coinsHeld >= (BASE_CONVERSION_FACTOR * TRADE_FACTOR)) {
                 let tradedOnce = false;
                 let tradeExponent = 0;
                 let koboldCoinKeys = Object.keys(this.totalCoin);
                 let totalTrades = 0;
+                let tradePenalty = (Math.floor(Math.random() * 100) + 100) - ((40 * playerStatus.upgradeCount.trade) + (this.skills.tradingSkills.bonus))
+                let tradeValue = 0;
+                if (tradePenalty <= 0) {
+                    tradeValue = Math.floor((Math.abs(tradePenalty / 100) * BASE_CONVERSION_FACTOR) - BASE_CONVERSION_FACTOR);
+                } else {
+                    tradeValue = Math.floor(((tradePenalty / 100) * BASE_CONVERSION_FACTOR) + BASE_CONVERSION_FACTOR);
+                }
+                
                 for (const coinTypes of koboldCoinKeys) {
-                    if (this.totalCoin[coinTypes] >= 10 * TRADE_FACTOR) {
+                    if (this.totalCoin[coinTypes] >= tradeValue) {
                         let coinTypeFind = Object.keys(this.totalCoin).indexOf(coinTypes) + 1;
                         let coinTypeUp = Object.keys(this.totalCoin)[coinTypeFind];
                         this.koboldYip('take', this.totalCoin, `kobold_${this.id}`);
                         if (coinTypeFind <= 10) {
                             //So long as the coin type is not plat, we don't convert plat
-                            while (this.totalCoin[coinTypes] >= (10 * TRADE_FACTOR)) {
-                                this.totalCoin[coinTypes] -= (10 * TRADE_FACTOR);
+                            while (this.totalCoin[coinTypes] >= (tradeValue)) {
+                                this.totalCoin[coinTypes] -= tradeValue;
                                 this.totalCoin[coinTypeUp] += 1;
                                 totalTrades++;
                             }
@@ -270,7 +277,7 @@ function createKobold(id) {
                 if (tradedOnce) {
                     //create trade exp
                     this.isTrading = false;
-                    this.giveXP('trading', Math.floor(this.skills.tradingSkills.bonus + totalTrades * BASE_SUB_MULTIPLIER));
+                    this.giveXP('trading', Math.floor(totalTrades * BASE_SUB_MULTIPLIER));
                     moveKobold(`kobold_${this.id}`, 'kobold-hoard-block');
                 }
             }
@@ -297,7 +304,7 @@ function createKobold(id) {
                 let hasCoinFlag = false;
                 //start from most expensive coin and work your way down
                 for (const coinTypes of coinKeys) {
-                    if (coinPurse[coinTypes] >= 20 && this.coinCapacity >= 20 && hasCoinFlag === false && coinTypes !== 'totalValue') {
+                    if (coinPurse[coinTypes] >= COIN_TRADE_TOTAL && this.coinCapacity >= COIN_TRADE_TOTAL && hasCoinFlag === false && coinTypes !== 'totalValue') {
                         if (this.coinCapacity > coinPurse[coinTypes]) {
                             this.totalCoin[coinTypes] += coinPurse[coinTypes];
                             coinPurse[coinTypes] = 0;
@@ -460,6 +467,7 @@ function createKobold(id) {
                 }
                 let itemDurabilty = Math.floor(Math.random() * (koboldBuildMax - koboldBuildMin + 1) + koboldBuildMin);
 
+                itemDurability = itemDurabilty + (playerStatus.upgradeCount.smith * Math.floor(Math.random() * 20));
                 //generate a prefix and suffix if skill is high enough
                 //see if we gem it as well
                 if (Math.random() * (this.skills.craftingSkills.level + this.skills.generalSkills.level) > 10) {
@@ -838,6 +846,7 @@ function createKobold(id) {
 
                 if (this.skills[category].exp >= this.skills[category].nextLevel) {
                     this.coinCapacity += 1;
+                    this.koboldTickSpeed -= 1;
                     this.skills[category].level += 1;
                     this.skills[category].exp = this.skills[category].exp - this.skills[category].nextLevel; //retain overflow xp
                     if (Math.floor(Math.random() * 100) <= this.skills[category].perkChance && this.skills[category].special === "") { //roll for perk
@@ -880,20 +889,20 @@ function createKobold(id) {
                         this.skills[category].perkChance += 1;
                     }
                     if (category !== 'generalSkills') { //Is this general level or not?
+                        this.skills[category].bonus += 2;
                         this.maxEnergy += 2;
                         this.currentEnergy += 2;
                         this.maxHunger += 2;
                         this.currentHunger += 2;
-                        this.coinCapacity += 2;
-                        this.koboldTickSpeed -= 1;
                         this.skills[category].nextLevel = Math.floor(BASE_SUB_MULTIPLIER * (this.skills[category].level ** BASE_SUB_MULTIPLIER) + BASE_SUB_EXP_LEVEL);
 
                     } else {
-                        this.skills[category].bonus += 2;
+                        this.skills[category].bonus += 1;
                         this.maxEnergy += 1;
                         this.currentEnergy +=1
                         this.maxHunger += 1;
                         this.currentHunger += 1;
+                        this.coinCapacity += 2;
                         this.skills[category].nextLevel = Math.floor(BASE_GENERAL_MULTIPLIER * (this.skills[category].level ** BASE_GENERAL_MULTIPLIER) + BASE_GENERAL_EXP_LEVEL);
 
                     }
