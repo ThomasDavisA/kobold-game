@@ -57,6 +57,7 @@ function coinClick() {
         let coinQuality = 0;
         let coinList = Object.keys(playerStatus.coinPurse);
         playerStatus.coinPurse[coinList[coinQuality]] += playerStatus.clickPower;
+        playerStatus.updateCoinGemFlag = true;
     }
 
 }
@@ -126,6 +127,8 @@ function playerInit() {
         clickPower: 1,
         koboldFood: 0,
         totalValue: 0,
+        updateCoinGemFlag: true,
+        updateFoodFlag: true,
         koboldList: [], //Should contain an array of kobold objs
         monsterList: [], //Array of monsters currently residing in adventure
         coinPurse: {   //Object of Coins
@@ -141,19 +144,19 @@ function playerInit() {
             platinumCoin: 0
         },
         gemPurse: {
-            Apatite: 10,
-            Beryl: 10,
-            Citrine: 10,
-            Emerald: 10,
-            Garnet: 1,
-            Jade: 1,
-            Onyx: 1,
-            Ruby: 1,
+            Apatite: 1,
+            Beryl: 0,
+            Citrine: 0,
+            Emerald: 0,
+            Garnet: 0,
+            Jade: 0,
+            Onyx: 0,
+            Ruby: 0,
             Sapphire: 0,
-            Spinel: 1,
-            Topaz: 1,
+            Spinel: 0,
+            Topaz: 0,
             Tanzanite: 0,
-            Tourmaline: 2
+            Tourmaline: 0
         },
         upgradeCost: 40,
         upgradeCount: {
@@ -890,8 +893,15 @@ window.setInterval(function () {
     //update all displays as well
     playerStatus.updateCoinValue();
 
-    displayCoinValues();
-    document.getElementById('kobold-cook-food-count').innerHTML = `${playerStatus.koboldFood} <i class="fas fa-leaf"></i>`
+    if(playerStatus.updateCoinGemFlag === true) {
+        displayCoinValues();
+        playerStatus.updateCoinGemFlag = false;
+    }
+
+    if(playerStatus.updateFoodFlag === true) {
+        document.getElementById('kobold-cook-food-count').innerHTML = `${playerStatus.koboldFood} <i class="fas fa-leaf"></i>`
+        playerStatus.updateFoodFlag = false;
+    }
 
     playerStatus.timeSpent++;
 }, 1);

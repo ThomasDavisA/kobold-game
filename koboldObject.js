@@ -197,14 +197,16 @@ function createKobold(id) {
                     playerStatus.gemPurse[gemToCrush] -= 1;
                     gemCrushMessage = `${gemCrushMessage} <i class="fas color-${gemToCrush} fa-gem"></i>`;
                     qualityLevel++;
+                    gemsHeld--;
                     gemCrushChance = Math.floor((Math.random() * 100) + ((this.skills.craftingSkills.bonus) / 3));
-                    if ((gemsHeld > 0 && gemCrushChance >= 90) && qualityLevel <= 8) {
+                    if ((gemsHeld > 0 && gemCrushChance >= 90) && qualityLevel <= 8 && gemsHeld > 0) {
                         gemLoop = true;
                     } else {
                         gemLoop = false;
                     }
                 }
                 this.koboldYip("gem_crush", gemCrushMessage, `kobold_${this.id}`);
+                playerStatus.updateCoinGemFlag = true;
             }
             //kobold should make coin based on level and get exp
             let coinQuality = coinList[qualityLevel];
@@ -290,6 +292,7 @@ function createKobold(id) {
                 this.koboldYip('coin', this.totalCoin, 'coin-gem-block');
                 this.koboldYip('take', this.totalCoin, `kobold_${this.id}`);
                 this.emptyPurse();
+                playerStatus.updateCoinGemFlag = true;
                 this.giveXP('general', this.coinCapacity);
                 if (this.isStillTrading === true) {
                     this.isTrading = true;
@@ -316,6 +319,7 @@ function createKobold(id) {
                         this.koboldYip('coin', this.totalCoin, `kobold_${this.id}`);
                         moveKobold(`kobold_${this.id}`, this.workLocation);
                         hasCoinFlag = true;
+                        playerStatus.updateCoinGemFlag = true;
                     }
                 }
 
@@ -349,6 +353,7 @@ function createKobold(id) {
                 playerStatus.koboldFood += foodMade;
                 if (foodMade > 0) {
                     this.koboldYip('food', foodMade, `kobold-cook-food-count`);
+                    playerStatus.updateFoodFlag = true;
                 }
             } else {
                 if (foodChange > stomachDiff) {
@@ -357,6 +362,7 @@ function createKobold(id) {
                         this.koboldYip('food', (stomachDiff), `kobold_${this.id}`);
                         this.koboldYip('food', ((stomachDiff) * -1), `kobold-cook-block`);
                         this.currentHunger = this.maxHunger;
+                        playerStatus.updateFoodFlag = true;
                     }
 
                     if (this.workLocation === '') {
@@ -371,6 +377,7 @@ function createKobold(id) {
                     this.koboldYip('food', foodChange, `kobold_${this.id}`);
                     playerStatus.koboldFood -= foodChange;
                     this.koboldYip('food-eat', (foodChange * -1), `kobold-cook-block`);
+                    playerStatus.updateFoodFlag = true;
                 }
                 document.getElementById(`kobold_${this.id}`).children[4].children[0].style.width = Math.floor((this.currentHunger / this.maxHunger) * 100) + "%";
             }
@@ -489,10 +496,11 @@ function createKobold(id) {
                     if (gemsHeld > 0) {
                         if ((Math.random() * (this.skills.craftingSkills.level + this.skills.craftingSkills.bonus) > 90) && gemsHeld > 0) {
                             let gem = returnRandomGem();
-                            playerStatus.gemPurse[gem] -= 1;
+                                playerStatus.gemPurse[gem] -= 1;
                             itemName = `<p><i class="fas color-${gem} fa-gem gemmed"></i> ${itemName} <i class="fas color-${gem} fa-gem gemmed"></i></p>`;
                             itemDurabilty += (this.skills.generalSkills.bonus + this.skills.craftingSkills.bonus) * 2;
                             this.koboldYip('gem_equip', gem, this.id);
+                            playerStatus.updateCoinGemFlag = true;
                         };
                     };
 
@@ -610,6 +618,7 @@ function createKobold(id) {
                 }
                 
                 gemMessage = `Looted ${gemMessage}!`;
+                playerStatus.updateCoinGemFlag = true;
                 document.getElementById(`monster_${monsterArrayEnd}`).remove();
                 playerStatus.monsterList.splice(checkMonsters.length - 1, 1);
                 this.koboldYip('gem', gemMessage, `kobold_${this.id}`)
