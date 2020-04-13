@@ -34,6 +34,7 @@ body {
     flex-direction: row;
     flex-wrap: nowrap;
     border: solid 2px var(--border-color);
+    border-radius: 5px;
     height: 100%;
     width: 100%;
     padding: 2px;
@@ -107,7 +108,7 @@ body {
     width: 30%;
     height: 70%;
     left: 100%;
-    top: 100px;
+    top: 50px;
     z-index: -1;
     padding: 40px 20px 20px 20px;
     overflow-y: scroll;
@@ -158,7 +159,7 @@ body {
     padding: 0;
     margin: 0;
     top: -100px;
-    height: 100px;
+    height: 50px;
     width: 100vw;
     transition: ease .2s;
 }
@@ -187,7 +188,7 @@ body {
 .tab:hover,
 #invis-extra:hover + .tab,
 .top-bar:hover .tab {
-    top: 75px;
+    top: 25px;
 }
 
 #invis-extra:hover + .top-bar,
@@ -199,7 +200,7 @@ body {
 #invis-extra:hover,
 .top-bar:hover #invis-extra,
 .tab:hover + #invis-extra {
-    top: 100px;
+    top: 50px;
 }
 
 .tab:hover #drop-arrow,
@@ -221,23 +222,23 @@ body {
 }
 
 .options {
+    height: 100%;
     display: flex;
     float: right;
-    align-content: flex-end;
+    align-items: center;
     justify-content: flex-end;
 }
 
 #nav-title {
     display: inline-block;
     height: 100%;
-    margin: 5px 10px;
     font-size: 2rem;
 }
 
 .option {
-    padding: 10px 20px;
-    margin: 0 20px;
-    transition: .5s ease-in-out;
+    padding: 15px 30px;
+    height: 100%;
+    transition: .3s ease-in-out;
 }
 
 .option:hover {
@@ -260,7 +261,7 @@ body {
     flex-wrap: nowrap;
     justify-content: space-between;
     align-items: stretch;
-    height: 30%;
+    height: 40%;
     width: 100%;
 }
 
@@ -269,14 +270,17 @@ body {
     flex-wrap: nowrap;
     text-align: center;
     border: 1px solid grey;
+    border-radius: 5px;
     margin: 0 10px;
-    background: none;
-    height: 100%;
+    padding: 5px;
+    background: lightgoldenrodyellow;
+    height: 70%;
     transition: ease-out .1s;
+    
 }
 
 .action-button:hover {
-    transform: scale(1.1, 1.1);
+    transform: scale(1.05, 1.05);
 }
 
 .action-button:active {
@@ -288,6 +292,7 @@ body {
     display: flex;
     justify-content: space-around;
     width: 50%;
+    align-items: center;
 }
 
 #coin-gem-block {
@@ -340,7 +345,6 @@ body {
 .inner-block {
     display: flex;
     margin: 0 auto;
-    border: 1px black solid;
     width: 100%;
 }
 
@@ -629,13 +633,13 @@ canvas {
 
 #upgrades-box {
     flex-flow: row wrap;
+    height: 100%;
 }
 
 #upgrades-box .action-button {
     width: 50%;
-    height: 50%;
+    height: 40%;
     margin: 0;
-    padding: 0;
 }
 
 .kobold-unit:active{
@@ -666,8 +670,10 @@ canvas {
 /* Create the game block.  Create a basic mapping of the grid here. */
 
 #game-block {
+    position: relative;
     display: grid;
-    background-color: darkslategray;
+    background-image: none;
+    background-color: rgba(200, 200, 200, .9);
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-rows: 1fr 1fr 1fr 1fr;
     grid-template-areas:
@@ -680,5 +686,5 @@ canvas {
     grid-gap: 5px 5px;
     justify-items: stretch;
     align-items: stretch;
-    padding: 30px 10px 10px 10px;  
+    padding: 30px 10px 10px 10px;
 }
